@@ -1,0 +1,211 @@
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+  .db-page {
+    display:flex; min-height:100vh;
+    background:#0d1117; color:#d0dce8;
+    font-family:'Segoe UI', system-ui, sans-serif;
+  }
+
+  /* SIDEBAR */
+  .db-sidebar {
+    width:240px; flex-shrink:0; background:#0d1117;
+    border-right:1px solid rgba(255,255,255,0.07);
+    display:flex; flex-direction:column;
+  }
+  .db-sidebar-logo {
+    display:flex; align-items:center; gap:10px;
+    padding:22px 24px; font-size:18px; font-weight:700;
+    color:#e0eaf6; letter-spacing:-0.3px;
+    border-bottom:1px solid rgba(255,255,255,0.07);
+  }
+  .db-nav { flex:1; padding:18px 14px; display:flex; flex-direction:column; gap:4px; }
+  .db-nav-item {
+    display:flex; align-items:center; gap:12px;
+    padding:10px 14px; border-radius:10px;
+    font-size:14px; color:#6a8aaa; cursor:pointer;
+    background:none; border:none; width:100%; text-align:left;
+    transition:background .18s, color .18s;
+  }
+  .db-nav-item:hover { background:rgba(255,255,255,0.06); color:#b0c8e0; }
+  .db-nav-item.active { background:rgba(255,255,255,0.1); color:#e0eaf6; font-weight:600; }
+  .db-nav-icon { width:18px; height:18px; opacity:0.7; flex-shrink:0; }
+  .db-nav-item.active .db-nav-icon { opacity:1; }
+  .db-sidebar-footer {
+    margin:16px 14px; background:rgba(255,255,255,0.05);
+    border-radius:12px; padding:16px;
+  }
+  .db-footer-title { font-size:14px; font-weight:600; color:#c0d4e8; margin-bottom:4px; }
+  .db-footer-sub { font-size:11px; color:#4a6a8a; }
+
+  /* MAIN */
+  .db-main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+
+  /* TOPBAR */
+  .db-topbar {
+    display:flex; align-items:center; justify-content:flex-end;
+    padding:14px 28px; gap:14px;
+    border-bottom:1px solid rgba(255,255,255,0.07);
+    background:#0d1117; position:relative;
+  }
+  .db-filter-btn {
+    background:rgba(255,255,255,0.07); border:none; color:#8aadcc;
+    padding:8px 10px; border-radius:8px; cursor:pointer;
+    display:flex; align-items:center; transition:background .2s;
+  }
+  .db-filter-btn:hover { background:rgba(255,255,255,0.12); }
+  .db-search-wrap {
+    flex:1; max-width:360px; display:flex; align-items:center; gap:10px;
+    background:rgba(255,255,255,0.07); border-radius:10px; padding:9px 16px;
+  }
+  .db-search-wrap input {
+    background:none; border:none; color:#8aadcc;
+    font-size:13px; outline:none; width:100%;
+  }
+  .db-search-wrap input::placeholder { color:#3a5a7a; }
+  .db-avatar {
+    width:36px; height:36px; border-radius:50%;
+    background:linear-gradient(135deg,#2a4060,#1a2d44);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; border:2px solid rgba(100,160,220,0.3);
+  }
+
+  /* DROPDOWN */
+  .db-dropdown {
+    position:absolute; top:62px; right:24px;
+    background:#141e2e; border:1px solid rgba(80,120,180,0.25);
+    border-radius:14px; padding:16px 0 8px; width:200px; z-index:100;
+    box-shadow:0 16px 48px rgba(0,0,0,0.5);
+  }
+  .db-dropdown-hi {
+    font-size:16px; font-weight:700; color:#e0eaf6;
+    padding:0 20px 12px; border-bottom:1px solid rgba(255,255,255,0.07); margin-bottom:8px;
+  }
+  .db-dropdown-item {
+    display:flex; align-items:center; gap:10px;
+    padding:9px 20px; font-size:13px; color:#8aadcc;
+    cursor:pointer; background:none; border:none; width:100%; text-align:left;
+    transition:background .15s, color .15s;
+  }
+  .db-dropdown-item:hover { background:rgba(255,255,255,0.07); color:#c8ddf0; }
+
+  /* CONTENT */
+  .db-content {
+    flex:1; padding:24px 28px; 
+    display:grid; grid-template-columns:1fr 1fr; gap:24px;
+  }
+  .db-card {
+    background:#131b28; border-radius:16px;
+    border:1px solid rgba(255,255,255,0.07); padding:22px;
+  }
+  .db-card-title { font-size:18px; font-weight:700; color:#ddeeff; margin-bottom:16px; }
+
+  /* DSA ROADMAP */
+  .roadmap-card { grid-column:1; grid-row:1; }
+  .roadmap-inner {
+    background:linear-gradient(135deg,#111c2e 0%,#0d1520 60%,#111828 100%);
+    border-radius:12px; padding:20px;
+    display:flex; align-items:center; gap:20px;
+    border:1px solid rgba(255,255,255,0.06); position:relative; overflow:hidden;
+  }
+  .roadmap-inner::before {
+    content:''; position:absolute; top:-40px; left:-40px;
+    width:200px; height:200px; border-radius:50%;
+    background:radial-gradient(ellipse,rgba(30,60,100,0.4) 0%,transparent 70%);
+  }
+  .roadmap-info { flex:1; }
+  .roadmap-info-title { font-size:16px; font-weight:700; color:#c8ddf0; margin-bottom:4px; }
+  .roadmap-pct { font-size:44px; font-weight:800; color:#ddeeff; letter-spacing:-1px; line-height:1; }
+  .roadmap-sub { font-size:12px; color:#4a6a8a; margin-top:4px; margin-bottom:14px; }
+  .roadmap-bar-wrap { background:rgba(40,70,110,0.35); height:6px; border-radius:3px; overflow:hidden; }
+  .roadmap-bar-fill { height:100%; background:linear-gradient(90deg,#3a8aaa,#5abdd0); border-radius:3px; width:45%; }
+  .roadmap-label { font-size:11px; color:#3a5a7a; margin-top:8px; }
+
+  /* CHECKPOINTS */
+  .checkpoints-card { grid-column:2; grid-row:1; }
+  .checkpoints-scroll { display:flex; gap:14px; overflow-x:auto; padding-bottom:4px; }
+  .checkpoints-scroll::-webkit-scrollbar { height:4px; }
+  .checkpoints-scroll::-webkit-scrollbar-thumb { background:rgba(60,100,160,0.3); border-radius:2px; }
+  .cp-card { flex-shrink:0; width:160px; border-radius:14px; padding:16px; }
+  .cp-card-1 { background:rgba(180,230,230,0.1); border:1px solid rgba(160,220,220,0.18); }
+  .cp-card-2 { background:rgba(200,190,240,0.1); border:1px solid rgba(190,180,240,0.18); }
+  .cp-card-3 { background:rgba(220,220,240,0.08); border:1px solid rgba(200,200,230,0.15); }
+  .cp-icon { margin-bottom:10px; }
+  .cp-name { font-size:13px; font-weight:700; color:#c8ddf0; margin-bottom:4px; }
+  .cp-topic { font-size:11px; color:#5a8aaa; margin-bottom:10px; }
+  .cp-days { font-size:13px; color:#8aadcc; margin-bottom:10px; }
+  .cp-days strong { color:#c0d8f0; }
+  .cp-badge { display:inline-block; font-size:10px; font-weight:600; padding:3px 10px; border-radius:6px; }
+  .cp-badge-1 { background:rgba(80,180,190,0.25); color:#70c8d8; }
+  .cp-badge-2 { background:rgba(150,130,220,0.25); color:#b0a0e0; }
+
+  /* WEAK TOPICS */
+  .weak-card { grid-column:1; grid-row:2; }
+  .weak-grid { display:flex; gap:14px; }
+  .weak-item {
+    flex:1; background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:14px;
+  }
+  .weak-item-name { font-size:13px; font-weight:600; color:#c0d4e8; margin-bottom:10px; }
+  .weak-bar-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+  .weak-bar-track { flex:1; height:10px; border-radius:5px; background:rgba(40,70,110,0.4); overflow:hidden; }
+  .weak-bar-fill { height:100%; border-radius:5px; }
+  .weak-pct { font-size:13px; font-weight:700; color:#c0d4e8; }
+  .weak-mini-bar { height:4px; border-radius:2px; }
+
+  /* PERF */
+  .perf-card { grid-column:1; grid-row:3; }
+
+  /* TASKS */
+  .tasks-card { grid-column:2; grid-row:2 / 4; }
+  .task-item {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.06); gap:12px;
+  }
+  .task-item:last-child { border-bottom:none; }
+  .task-left { display:flex; align-items:center; gap:12px; }
+  .task-icon {
+    width:32px; height:32px; border-radius:8px;
+    background:rgba(255,255,255,0.06);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .task-title { font-size:14px; font-weight:600; color:#c8ddf0; }
+  .task-sub { font-size:11px; color:#4a6a8a; margin-top:2px; }
+  .task-tag { font-size:11px; color:#5a8aaa; display:flex; align-items:center; gap:5px; white-space:nowrap; }
+  .tag-dot { width:7px; height:7px; border-radius:50%; background:#3a6a8a; flex-shrink:0; }
+
+  .task-progress{
+margin-left:10px;
+font-size:12px;
+color:#8aadcc;
+font-weight:500;
+}
+
+.streak-card{
+grid-column:1 / span 2;
+grid-row:1;
+}
+
+.roadmap-card{
+grid-column:1;
+grid-row:2;
+}
+
+.checkpoints-card{
+grid-column:2;
+grid-row:2;
+}
+
+.weak-card{
+grid-column:1;
+grid-row:3;
+}
+
+.perf-card{
+grid-column:1;
+grid-row:4;
+}
+
+.tasks-card{
+grid-column:2;
+grid-row:3 / 5;
+}
