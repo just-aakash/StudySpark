@@ -87,6 +87,12 @@
   object-fit: contain;
   border-radius: 50%;
   }
+  .home-footer img{
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 50%;
+  }
   @media(max-width:768px) {
     .hn-links { display: none; }
     .section { padding: 60px 5%; }

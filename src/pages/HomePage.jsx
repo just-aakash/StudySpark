@@ -31,11 +31,11 @@ export default function HomePage({ onNav }) {
   ];
  
   const TEAM = [
-    { name: "Akash Tiwari", roll: "2415000153", role: "Team Lead & Backend", av: "AT", col: "#00d4aa" },
-    { name: "Akash Foujdar", roll: "2415000147", role: "Frontend Dev", av: "AF", col: "#6366f1" },
-    { name: "Lakshay Sharma", roll: "2415000883", role: "AI/ML Engineer", av: "LS", col: "#f59e0b" },
-    { name: "Dhruv Tyagi", roll: "2415000548", role: "Database & API", av: "DT", col: "#ef4444" },
-    { name: "Jayant Kumar", roll: "2415000728", role: "UI/UX Designer", av: "JK", col: "#a855f7" },
+    { name: "Akash Tiwari", role: "UI/UX & Frontend Dev", av: "AT", col: "#00d4aa" },
+    { name: "Akash Foujdar", role: "Backend", av: "AF", col: "#6366f1" },
+    { name: "Lakshay Sharma", role: "Frontend Dev", av: "LS", col: "#f59e0b" },
+    { name: "Dhruv Tyagi", role: "Backend & API", av: "DT", col: "#ef4444" },
+    { name: "Jayant Kumar", role: "Database", av: "JK", col: "#a855f7" },
   ];
  
   const FEATS = [
@@ -74,7 +74,7 @@ export default function HomePage({ onNav }) {
           <div className="hero-orb" style={{ width: 500, height: 500, top: "20%", right: "-8%", background: "rgba(99,102,241,0.04)" }} />
         </div>
         <div style={{ position: "relative", zIndex: 1 }}>
-          <div className="hero-badge">🎓 AI-Powered Academic Monitor · GLA University</div>
+          <div className="hero-badge">🎓 AI-Powered Study Platform</div>
           <h1 className="hero-h1">
             <span className="hero-gradient">StudySpark</span><br />
             <span style={{ fontSize: "0.75em" }}>{typed}<span style={{ display: "inline-block", width: 3, height: "0.85em", background: "var(--accent)", marginLeft: 3, animation: "blink 1s infinite", verticalAlign: "middle" }} /></span>
@@ -140,8 +140,8 @@ export default function HomePage({ onNav }) {
       {/* ABOUT US */}
       <section className="section" id="about">
         <div className="section-tag">The Team</div>
-        <h2 className="section-title">Built at GLA University</h2>
-        <p className="section-sub">StudySpark is a B.Tech CSE project developed by 5 students under Dr. Sayantan Sinha, 2025–26.</p>
+        <h2 className="section-title">Meet Our Team</h2>
+        <p className="section-sub">StudySpark is developed by a passionate team of students focused on creating smart tools that helps learners build better study habits and stay productive</p>
         <div className="team-grid">
           {TEAM.map(m => (
             <div className="team-card" key={m.roll}>
@@ -151,14 +151,6 @@ export default function HomePage({ onNav }) {
               <div className="team-roll">{m.roll}</div>
             </div>
           ))}
-        </div>
-        <div style={{ marginTop: 32, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "20px 24px", maxWidth: 420, display: "flex", gap: 16, alignItems: "center" }}>
-          <div style={{ fontSize: 40 }}>👨‍🏫</div>
-          <div>
-            <div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>Project Supervisor</div>
-            <div style={{ fontFamily: "var(--display)", fontSize: 18, fontWeight: 700, marginTop: 2 }}>Dr. Sayantan Sinha</div>
-            <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2 }}>Dept. of CS & Engineering Applications, GLA University</div>
-          </div>
         </div>
       </section>
  
@@ -193,7 +185,7 @@ export default function HomePage({ onNav }) {
             )}
           </div>
           <div className="contact-info">
-            {[["📍","Location","GLA University, Mathura, UP 281406"],["📧","Email","studyspark@gla.ac.in"],["👨‍🏫","Supervisor","Dr. Sayantan Sinha"],["🎓","Department","Computer Engineering & Applications"]].map(([ic,l,v]) => (
+            {[["📍","Location","GLA University, Mathura, UP 281406"],["📧","Email","akash.tiwari@gla.ac.in"],].map(([ic,l,v]) => (
               <div className="ci-card" key={l}><div className="ci-icon">{ic}</div><div><div className="ci-label">{l}</div><div className="ci-val">{v}</div></div></div>
             ))}
           </div>
@@ -201,8 +193,8 @@ export default function HomePage({ onNav }) {
       </section>
  
       <footer className="home-footer">
-        <div style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 800, color: "var(--accent)", marginBottom: 8 }}>⚡ StudySpark</div>
-        <div style={{ color: "var(--muted)", fontSize: 14 }}>AI Habit Forge · GLA University, Mathura · B.Tech CSE 2025–26</div>
+        <div style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 800, color: "var(--accent)", marginBottom: 8 }}><div className="home-footer-logo"><img src={logo} alt="StudySpark Logo" /></div>StudySpark</div>
+        <div style={{ color: "var(--muted)", fontSize: 14 }}>AI Habit Forge</div>
         <div style={{ marginTop: 8, color: "var(--muted)", fontSize: 12 }}>Built with ❤️ by Akash, Akash, Lakshay, Dhruv & Jayant</div>
       </footer>
  
