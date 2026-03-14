@@ -1,12 +1,21 @@
+import { useState } from "react";
 import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
 
-export default function App() {
+function App() {
+  const [page, setPage] = useState("home");
 
-  const nav = (page) => {
-    console.log("Navigate to:", page);
+  const handleLogin = (user) => {
+    console.log("User logged in:", user);
+    setPage("home"); // redirect to home after login
   };
 
   return (
-    <HomePage onNav={nav} />
+    <>
+      {page === "home" && <HomePage onNav={setPage} />}
+      {page === "login" && <LoginPage onNav={setPage} onLogin={handleLogin} />}
+    </>
   );
 }
+
+export default App;

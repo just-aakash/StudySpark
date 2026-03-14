@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import "../styles/home.css";
 import Modal from "../components/Modal";
 import logo from "../assets/logo.png";
+import { motion } from "framer-motion";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 50, scale: 0.95 },
+  visible: { opacity: 1, y: 0, scale: 1 }
+};
 
 export default function HomePage({ onNav }) {
   const [scrolled, setScrolled] = useState(false);
@@ -107,12 +113,20 @@ export default function HomePage({ onNav }) {
         <h2 className="section-title">Everything You Need to Excel</h2>
         <p className="section-sub">A preventive, adaptive system that monitors and optimizes your academic journey in real time.</p>
         <div className="feat-grid">
-          {FEATS.map(f => (
-            <div className="feat-card" key={f.title}>
+          {FEATS.map((f, i) => (
+            <motion.div
+              key={f.title}
+              className="feat-card"
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeUp}
+              transition={{ delay: i * 0.1, duration: 0.5 }}
+            >
               <div className="feat-icon">{f.icon}</div>
               <div className="feat-title">{f.title}</div>
               <div className="feat-desc">{f.desc}</div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
@@ -123,16 +137,33 @@ export default function HomePage({ onNav }) {
         <h2 className="section-title">From Our Blog</h2>
         <p className="section-sub">Research-backed strategies and AI learning updates from the StudySpark team.</p>
         <div className="blog-grid">
-          {BLOGS.map(b => (
-            <div className="blog-card" key={b.id} onClick={() => setBlogModal(b)}>
-              <div className="blog-thumb" style={{ background: b.bg }}>{b.icon}</div>
+          {BLOGS.map((b, i) => (
+            <motion.div
+              className="blog-card"
+              key={b.id}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeUp}
+              transition={{ delay: i * 0.1 }}
+              onClick={() => setBlogModal(b)}
+            >
+              <div className="blog-thumb" style={{ background: b.bg }}>
+                {b.icon}
+              </div>
+
               <div className="blog-body">
                 <div className="blog-tag">{b.tag}</div>
                 <div className="blog-title">{b.title}</div>
                 <div className="blog-excerpt">{b.excerpt}</div>
-                <div className="blog-meta"><span>✍️ {b.author}</span><span>🕐 {b.read} read</span><span>📅 {b.date}</span></div>
+
+                <div className="blog-meta">
+                  <span>✍️ {b.author}</span>
+                  <span>🕐 {b.read} read</span>
+                  <span>📅 {b.date}</span>
+                </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
@@ -143,13 +174,23 @@ export default function HomePage({ onNav }) {
         <h2 className="section-title">Meet Our Team</h2>
         <p className="section-sub">StudySpark is developed by a passionate team of students focused on creating smart tools that helps learners build better study habits and stay productive</p>
         <div className="team-grid">
-          {TEAM.map(m => (
-            <div className="team-card" key={m.roll}>
-              <div className="team-av" style={{ background: m.col + "22", color: m.col }}>{m.av}</div>
+          {TEAM.map((m, i) => (
+            <motion.div
+              className="team-card"
+              key={m.name}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeUp}
+              transition={{ delay: i * 0.1 }}
+            >
+              <div className="team-av" style={{ background: m.col + "22", color: m.col }}>
+              {m.av}
+              </div>
+
               <div className="team-name">{m.name}</div>
               <div className="team-role">{m.role}</div>
-              <div className="team-roll">{m.roll}</div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>

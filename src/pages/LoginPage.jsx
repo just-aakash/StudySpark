@@ -1,0 +1,123 @@
+import { useState} from "react";
+import "../styles/login.css";
+
+
+export default function LoginPage({ onNav, onLogin }) {
+  const [tab, setTab] = useState("login");
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [showPass, setShowPass] = useState(false);
+  const [forgot, setForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
+ 
+  const validate = () => {
+    const e = {};
+    if (!form.email.includes("@")) e.email = "Valid email required";
+    if (form.password.length < 6) e.password = "Min 6 characters";
+    return e;
+  };
+ 
+  const handle = () => {
+    const e = validate(); if (Object.keys(e).length) { setErrors(e); return; }
+    setLoading(true);
+    setTimeout(() => { setLoading(false); onLogin({ email: form.email, name: "Akash Tiwari", isNew: false }); }, 1400);
+  };
+ 
+  return (
+    <div className="login-page">
+      <button className="back-btn" onClick={() => onNav("home")}>← Home</button>
+ 
+      <div className="login-left">
+        <div style={{ fontSize: 40, marginBottom: 20 }}>⚡</div>
+        <div style={{ background: "rgba(0,212,170,0.08)", border: "1px solid rgba(0,212,170,0.2)", borderRadius: 99, padding: "5px 14px", fontSize: 12, color: "var(--accent)", fontWeight: 700, letterSpacing: 1, display: "inline-block", marginBottom: 20 }}>AI-Powered Academic Platform</div>
+        <h1 style={{ fontFamily: "var(--display)", fontSize: 38, fontWeight: 800, lineHeight: 1.2, marginBottom: 20 }}>
+          Your Personalized<br /><span style={{ color: "var(--accent)" }}>Study Engine</span><br />Awaits.
+        </h1>
+        <p style={{ color: "var(--muted)", fontSize: 15, lineHeight: 1.75, maxWidth: 380, marginBottom: 36 }}>
+          StudySpark monitors your roadmap, runs checkpoint evaluations, and adapts your study plan before you fall behind.
+        </p>
+        {["Checkpoint-based weekly evaluations","AI restructures roadmap when needed","Risk alerts before exams fail you","Streak & badge reward system"].map(f => (
+          <div className="ll-feat" key={f}><div className="ll-dot" /><span style={{ fontSize: 14, color: "var(--muted)" }}>{f}</span></div>
+        ))}
+        <div style={{ marginTop: 32, background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 14, padding: "18px 22px", maxWidth: 360 }}>
+          <div style={{ fontSize: 14, fontStyle: "italic", color: "var(--muted)", lineHeight: 1.7, marginBottom: 12 }}>
+            "StudySpark detected my weak DBMS topics 3 weeks before the exam. The AI-restructured plan actually worked."
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>— CSE Student, GLA University</div>
+        </div>
+      </div>
+ 
+      <div className="login-right">
+        <div className="login-card">
+          <div style={{ textAlign: "center", marginBottom: 28 }}>
+            <div style={{ fontFamily: "var(--display)", fontSize: 28, fontWeight: 800 }}>Welcome Back 👋</div>
+            <div style={{ fontSize: 14, color: "var(--muted)", marginTop: 6 }}>Sign in to access your dashboard</div>
+          </div>
+ 
+          {!forgot ? (
+            <>
+              <div className="login-tab-bar">
+                <button className={`login-tab ${tab === "login" ? "on" : ""}`} onClick={() => setTab("login")}>Login</button>
+                <button className={`login-tab ${tab === "register" ? "on" : ""}`} onClick={() => onNav("register")}>Register</button>
+              </div>
+ 
+              <div className="lf-group">
+                <label className="lf-label">Email Address</label>
+                <input className={`input-field ${errors.email ? "err" : ""}`} placeholder="akash@gla.ac.in" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+                {errors.email && <span style={{ fontSize: 11, color: "var(--red)" }}>{errors.email}</span>}
+              </div>
+              <div className="lf-group">
+                <label className="lf-label">Password</label>
+                <div style={{ position: "relative" }}>
+                  <input className={`input-field ${errors.password ? "err" : ""}`} type={showPass ? "text" : "password"} placeholder="••••••••" style={{ paddingRight: 40 }} value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
+                  <button className="pass-eye" onClick={() => setShowPass(s => !s)}>{showPass ? "🙈" : "👁️"}</button>
+                </div>
+                {errors.password && <span style={{ fontSize: 11, color: "var(--red)" }}>{errors.password}</span>}
+              </div>
+              <div style={{ textAlign: "right", marginBottom: 16 }}>
+                <span style={{ fontSize: 13, color: "var(--accent)", cursor: "pointer" }} onClick={() => setForgot(true)}>Forgot password?</span>
+              </div>
+ 
+              <button className="btn-primary" style={{ width: "100%", padding: "13px", fontSize: 15 }} onClick={handle} disabled={loading}>
+                {loading ? <span style={{ display: "inline-block", width: 18, height: 18, border: "2px solid rgba(0,0,0,0.3)", borderTopColor: "#000", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} /> : "Login to Dashboard →"}
+              </button>
+ 
+              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0", color: "var(--muted)", fontSize: 13 }}>
+                <div style={{ flex: 1, height: 1, background: "var(--border)" }} /><span>or continue with</span><div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+              </div>
+              <div className="social-row">
+                {[["🔵","Google"],["🔷","LinkedIn"],["⚫","GitHub"]].map(([ic,name]) => (
+                  <button key={name} className="soc-btn" onClick={() => { setLoading(true); setTimeout(() => { setLoading(false); onLogin({ email: "social@gla.ac.in", name: "Akash Tiwari", isNew: false }); }, 1200); }}>{ic} {name}</button>
+                ))}
+              </div>
+              <div style={{ textAlign: "center", marginTop: 22, fontSize: 13, color: "var(--muted)" }}>
+                New here? <span style={{ color: "var(--accent)", cursor: "pointer", fontWeight: 700 }} onClick={() => onNav("register")}>Create an account</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Reset Password</div>
+              <div style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20 }}>Enter your email and we'll send a reset link.</div>
+              {forgotSent ? (
+                <div style={{ background: "rgba(0,212,170,0.08)", border: "1px solid var(--accent)", borderRadius: 12, padding: 16, color: "var(--accent)", fontWeight: 600, textAlign: "center" }}>✅ Reset link sent to {forgotEmail}</div>
+              ) : (
+                <>
+                  <div className="lf-group">
+                    <label className="lf-label">Email Address</label>
+                    <input className="input-field" placeholder="your@email.com" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} />
+                  </div>
+                  <button className="btn-primary" style={{ width: "100%", padding: "13px", fontSize: 15 }} onClick={() => { if (forgotEmail.includes("@")) setForgotSent(true); }}>Send Reset Link</button>
+                </>
+              )}
+              <div style={{ textAlign: "center", marginTop: 16, fontSize: 13 }}>
+                <span style={{ color: "var(--accent)", cursor: "pointer" }} onClick={() => { setForgot(false); setForgotSent(false); }}>← Back to login</span>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
