@@ -41,12 +41,6 @@ export default function LoginPage({ onNav, onLogin }) {
         {["Checkpoint-based weekly evaluations","AI restructures roadmap when needed","Risk alerts before exams fail you","Streak & badge reward system"].map(f => (
           <div className="ll-feat" key={f}><div className="ll-dot" /><span style={{ fontSize: 14, color: "var(--muted)" }}>{f}</span></div>
         ))}
-        <div style={{ marginTop: 32, background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 14, padding: "18px 22px", maxWidth: 360 }}>
-          <div style={{ fontSize: 14, fontStyle: "italic", color: "var(--muted)", lineHeight: 1.7, marginBottom: 12 }}>
-            "StudySpark detected my weak DBMS topics 3 weeks before the exam. The AI-restructured plan actually worked."
-          </div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>— CSE Student, GLA University</div>
-        </div>
       </div>
  
       <div className="login-right">
