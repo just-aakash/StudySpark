@@ -3,13 +3,15 @@ import "../styles/home.css";
 import Modal from "../components/Modal";
 import logo from "../assets/logo.png";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 50, scale: 0.95 },
   visible: { opacity: 1, y: 0, scale: 1 }
 };
 
-export default function HomePage({ onNav }) {
+export default function HomePage() {
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [blogModal, setBlogModal] = useState(null);
   const [contactForm, setContactForm] = useState({ name: "", email: "", msg: "" });
@@ -68,8 +70,10 @@ export default function HomePage({ onNav }) {
           ))}
         </ul>
         <div className="hn-btns">
-          <button className="btn-outline hn-login" onClick={() => onNav("login")}>Login</button>
-          <button className="btn-primary hn-reg" onClick={() => onNav("register")}>Register Free</button>
+          <button className="btn-outline hn-login" onClick={() => navigate("/login")}>
+            Login
+          </button>
+          <button className="btn-primary hn-reg" onClick={() => navigate("/register")}>Register</button>
         </div>
       </nav>
  
@@ -87,7 +91,7 @@ export default function HomePage({ onNav }) {
           </h1>
           <p className="hero-p">An AI-powered preventive academic monitoring system that tracks your roadmap, evaluates you at checkpoints, and adapts your study plan — before failure happens.</p>
           <div className="hero-ctas">
-            <button className="btn-primary h-cta1" onClick={() => onNav("register")}>Get Started Free →</button>
+            <button className="btn-primary h-cta1" onClick={() => navigate("/register")}>Get Started Free →</button>
             <button className="btn-outline h-cta2" onClick={() => scrollTo("features")}>See Features ↓</button>
           </div>
           <div className="hero-stats">

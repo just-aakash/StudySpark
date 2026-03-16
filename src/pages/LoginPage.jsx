@@ -1,8 +1,10 @@
 import { useState} from "react";
 import "../styles/login.css";
+import { useNavigate } from "react-router-dom";
 
 
-export default function LoginPage({ onNav, onLogin }) {
+export default function LoginPage({onLogin}) {
+  const navigate = useNavigate();
   const [tab, setTab] = useState("login");
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -22,12 +24,14 @@ export default function LoginPage({ onNav, onLogin }) {
   const handle = () => {
     const e = validate(); if (Object.keys(e).length) { setErrors(e); return; }
     setLoading(true);
-    setTimeout(() => { setLoading(false); onLogin({ email: form.email, name: "Akash Tiwari", isNew: false }); }, 1400);
+    setTimeout(() => { setLoading(false); onLogin({ email: form.email, name: "Akash Tiwari", isNew: false });
+    navigate("/dashboard");
+  }, 1400);
   };
  
   return (
     <div className="login-page">
-      <button className="back-btn" onClick={() => onNav("home")}>← Home</button>
+      <button className="back-btn" onClick={() => navigate("/")}>← Home</button>
  
       <div className="login-left">
         <div style={{ fontSize: 40, marginBottom: 20 }}>⚡</div>
@@ -54,7 +58,7 @@ export default function LoginPage({ onNav, onLogin }) {
             <>
               <div className="login-tab-bar">
                 <button className={`login-tab ${tab === "login" ? "on" : ""}`} onClick={() => setTab("login")}>Login</button>
-                <button className={`login-tab ${tab === "register" ? "on" : ""}`} onClick={() => onNav("register")}>Register</button>
+                <button className={`login-tab ${tab === "register" ? "on" : ""}`} onClick={() => navigate("/register")}>Register</button>
               </div>
  
               <div className="lf-group">
@@ -87,7 +91,7 @@ export default function LoginPage({ onNav, onLogin }) {
                 ))}
               </div>
               <div style={{ textAlign: "center", marginTop: 22, fontSize: 13, color: "var(--muted)" }}>
-                New here? <span style={{ color: "var(--accent)", cursor: "pointer", fontWeight: 700 }} onClick={() => onNav("register")}>Create an account</span>
+                New here? <span style={{ color: "var(--accent)", cursor: "pointer", fontWeight: 700 }} onClick={() => navigate("/register")}>Create an account</span>
               </div>
             </>
           ) : (
