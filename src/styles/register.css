@@ -1,0 +1,21 @@
+  .reg-page { min-height: 100vh; background: var(--bg); padding: 80px 5% 60px; }
+  .reg-header { text-align: center; margin-bottom: 48px; }
+  .reg-stepper { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 48px; }
+  .step-item { display: flex; align-items: center; }
+  .step-circle { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; font-family: var(--display); border: 2px solid; transition: all 0.3s; }
+  .step-circle.done { background: var(--accent); border-color: var(--accent); color: #000; }
+  .step-circle.active { background: transparent; border-color: var(--accent); color: var(--accent); }
+  .step-circle.pending { background: transparent; border-color: var(--muted); color: var(--muted); }
+  .step-line { width: 60px; height: 2px; background: var(--border); transition: background 0.3s; }
+  .step-line.done { background: var(--accent); }
+  .step-label { font-size: 11px; text-align: center; margin-top: 6px; font-weight: 600; }
+  .reg-card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 40px; max-width: 760px; margin: 0 auto; }
+  .reg-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .reg-group { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+  .reg-label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .reg-nav { display: flex; justify-content: space-between; margin-top: 28px; }
+  .interest-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .interest-chip { padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 600; border: 1.5px solid var(--border); background: transparent; color: var(--text); cursor: pointer; transition: all 0.2s; }
+  .interest-chip.sel { background: rgba(0,212,170,0.1); border-color: var(--accent); color: var(--accent); }
+  @media(max-width:600px){ .reg-grid-2 { grid-template-columns: 1fr; } }
