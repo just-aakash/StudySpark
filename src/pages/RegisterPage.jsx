@@ -39,8 +39,9 @@ export default function RegisterPage({onRegister }) {
     if (step < 3){
         setStep(s => s + 1);
     }
-    else{ 
-        onRegister(form);
+    else{
+        localStorage.setItem("user", JSON.stringify(form));
+        console.log("User registered:", form);
         navigate("/courses");
     }
   };
@@ -58,7 +59,7 @@ export default function RegisterPage({onRegister }) {
         {/* STEPPER */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 40 }}>
           {STEPS.map((s, i) => (
-            <div key={s} style={{ display: "flex", alignItems: "flex-start", flexDirection: "column", alignItems: "center" }}>
+            <div key={s} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ display: "flex", alignItems: "center" }}>
                 <div className={`step-circle ${i < step ? "done" : i === step ? "active" : "pending"}`}>{i < step ? "✓" : i + 1}</div>
                 {i < STEPS.length - 1 && <div className={`step-line ${i < step ? "done" : ""}`} />}

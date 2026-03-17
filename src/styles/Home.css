@@ -25,7 +25,7 @@
     margin-bottom: 24px; animation: fadeUp 0.5s ease; }
   .hero-h1 { font-family: var(--display); font-size: clamp(40px,6.5vw,88px); font-weight: 800;
     line-height: 1.05; margin-bottom: 20px; animation: fadeUp 0.5s 0.1s ease both; }
-  .hero-gradient { background: linear-gradient(120deg, var(--accent) 0%, #6366f1 50%, var(--accent2) 100%);
+  .hero-gradient { background: linear-gradient(120deg, var(--accent) 0%, #6366f1 50%, var(--accent2) 100%); 
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .hero-p { font-size: clamp(16px,1.8vw,20px); color: var(--muted); max-width: 580px; margin: 0 auto 36px;
     line-height: 1.75; animation: fadeUp 0.5s 0.2s ease both; }
