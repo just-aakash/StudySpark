@@ -48,6 +48,12 @@ export default function RegisterPage({onRegister }) {
  
   return (
     <div className="reg-page">
+      {/* Background bubbles */}
+      <div className="bg-bubbles">
+        {Array.from({ length: 12 }).map((_, i) => (
+        <span key={i}></span>
+        ))}
+      </div>
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
         <button className="btn-outline" style={{ padding: "7px 16px", fontSize: 13, marginBottom: 24 }} onClick={() => navigate("/login")}>← Back to Login</button>
  

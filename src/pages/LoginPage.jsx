@@ -31,6 +31,11 @@ export default function LoginPage({onLogin}) {
  
   return (
     <div className="login-page">
+      <div className="bg-bubbles">
+        {Array.from({ length: 10 }).map((_, i) => (
+        <span key={i}></span>
+        ))}
+      </div>
       <button className="back-btn" onClick={() => navigate("/")}>← Home</button>
  
       <div className="login-left">

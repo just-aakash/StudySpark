@@ -19,3 +19,60 @@
   .interest-chip { padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 600; border: 1.5px solid var(--border); background: transparent; color: var(--text); cursor: pointer; transition: all 0.2s; }
   .interest-chip.sel { background: rgba(0,212,170,0.1); border-color: var(--accent); color: var(--accent); }
   @media(max-width:600px){ .reg-grid-2 { grid-template-columns: 1fr; } }
+  /* Background container */
+.bg-bubbles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Individual bubbles */
+.bg-bubbles span {
+  position: absolute;
+  bottom: -120px;
+  width: 15px;
+  height: 15px;
+  background: rgba(99, 102, 241, 0.12); /* softer purple */
+  border-radius: 50%;
+  animation: bubbleUp 12s linear infinite;
+  filter: blur(1px);
+}
+
+/* Animation */
+@keyframes bubbleUp {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(-120vh) scale(1.3);
+    opacity: 0;
+  }
+}
+.bg-bubbles span:nth-child(1) { left: 5%; animation-duration: 12s; }
+.bg-bubbles span:nth-child(2) { left: 15%; animation-duration: 10s; }
+.bg-bubbles span:nth-child(3) { left: 25%; animation-duration: 14s; }
+.bg-bubbles span:nth-child(4) { left: 35%; animation-duration: 9s; }
+.bg-bubbles span:nth-child(5) { left: 45%; animation-duration: 13s; }
+.bg-bubbles span:nth-child(6) { left: 55%; animation-duration: 11s; }
+.bg-bubbles span:nth-child(7) { left: 65%; animation-duration: 15s; }
+.bg-bubbles span:nth-child(8) { left: 75%; animation-duration: 8s; }
+.bg-bubbles span:nth-child(9) { left: 85%; animation-duration: 12s; }
+.bg-bubbles span:nth-child(10) { left: 95%; animation-duration: 10s; }
+.bg-bubbles span:nth-child(11) { left: 50%; animation-duration: 14s; }
+.bg-bubbles span:nth-child(12) { left: 30%; animation-duration: 9s; }
+.reg-page {
+  position: relative;
+  z-index: 1;
+}
+.bg-bubbles span {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}

@@ -33,7 +33,7 @@ export default function HomePage() {
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
  
   const BLOGS = [
-    { id: 1, icon: "🧠", tag: "Research", title: "The Science of Checkpoint-Based Learning", excerpt: "Spaced repetition and active recall at predefined checkpoints dramatically improve long-term retention compared to passive reading.", author: "Dr. Sayantan Sinha", date: "Mar 10, 2025", read: "5 min", bg: "linear-gradient(135deg,#001a14,#002a20)", content: "Checkpoint assessments force active recall — one of the most powerful learning strategies. Rather than passive re-reading, students who regularly test themselves at structured intervals retain 40–60% more information. StudySpark builds this into the system automatically, ensuring every study cycle ends with a meaningful evaluation." },
+    { id: 1, icon: "🧠", tag: "Research", title: "The Science of Checkpoint-Based Learning", excerpt: "Spaced repetition and active recall at predefined checkpoints dramatically improve long-term retention compared to passive reading.", author: "Akash Tiwari", date: "Mar 10, 2025", read: "5 min", bg: "linear-gradient(135deg,#001a14,#002a20)", content: "Checkpoint assessments force active recall — one of the most powerful learning strategies. Rather than passive re-reading, students who regularly test themselves at structured intervals retain 40–60% more information. StudySpark builds this into the system automatically, ensuring every study cycle ends with a meaningful evaluation." },
     { id: 2, icon: "🔥", tag: "Habits", title: "Why 93% of Students Abandon Study Plans", excerpt: "Research reveals that without continuous feedback loops, even the best study plans collapse within 2 weeks. Here's how to fix that.", author: "Akash Tiwari", date: "Mar 5, 2025", read: "4 min", bg: "linear-gradient(135deg,#1a0d00,#2a1500)", content: "The key to lasting study habits isn't willpower — it's feedback. When students don't see measurable progress, motivation evaporates. StudySpark's streak system, checkpoint scores, and adaptive roadmap adjustments create a continuous feedback loop that keeps learners on track, week after week." },
     { id: 3, icon: "🤖", tag: "AI & Learning", title: "How AI Prevents Academic Failure Before It Happens", excerpt: "Instead of reacting after exam failure, preventive AI systems like StudySpark intervene weeks before the damage is done.", author: "Lakshay Sharma", date: "Feb 28, 2025", read: "6 min", bg: "linear-gradient(135deg,#0a0018,#130028)", content: "Traditional platforms are curative — they respond after poor exam results. StudySpark is preventive. By monitoring roadmap adherence, running weekly conceptual checkpoints, and applying decision-tree logic to reroute study plans, the system catches academic drift before it becomes academic failure." },
   ];
@@ -230,7 +230,7 @@ export default function HomePage() {
             )}
           </div>
           <div className="contact-info">
-            {[["📍","Location","GLA University, Mathura, UP 281406"],["📧","Email","akash.tiwari@gla.ac.in"],].map(([ic,l,v]) => (
+            {[["📍","Location","GLA University, Mathura, UP 281406"],["📧","Email","akash.tiwari_cs24@gla.ac.in"],].map(([ic,l,v]) => (
               <div className="ci-card" key={l}><div className="ci-icon">{ic}</div><div><div className="ci-label">{l}</div><div className="ci-val">{v}</div></div></div>
             ))}
           </div>
