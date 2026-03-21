@@ -41,7 +41,7 @@ export default function RegisterPage({onRegister }) {
     }
     else{
         localStorage.setItem("user", JSON.stringify(form));
-        console.log("User registered:", form);
+        onRegister(form);
         navigate("/courses");
     }
   };
