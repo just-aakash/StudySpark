@@ -1,6 +1,7 @@
 import { useState} from "react";
 import "../styles/login.css";
 import { useNavigate } from "react-router-dom";
+import authService from "../services/authService";
 
 
 export default function LoginPage({onLogin}) {
@@ -9,10 +10,8 @@ export default function LoginPage({onLogin}) {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
   const [showPass, setShowPass] = useState(false);
-  const [forgot, setForgot] = useState(false);
-  const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotSent, setForgotSent] = useState(false);
  
   const validate = () => {
     const e = {};
@@ -21,12 +20,19 @@ export default function LoginPage({onLogin}) {
     return e;
   };
  
-  const handle = () => {
+  const handle = async () => {
     const e = validate(); if (Object.keys(e).length) { setErrors(e); return; }
     setLoading(true);
-    setTimeout(() => { setLoading(false); onLogin({ email: form.email, name: "Akash Tiwari", isNew: false });
-    navigate("/dashboard");
-  }, 1400);
+    setApiError("");
+    try {
+      const data = await authService.login(form);
+      onLogin(data);
+      navigate("/dashboard");
+    } catch (err) {
+      setApiError(err.response?.data?.message || err.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
  
   return (
@@ -59,66 +65,47 @@ export default function LoginPage({onLogin}) {
             <div style={{ fontSize: 14, color: "var(--muted)", marginTop: 6 }}>Sign in to access your dashboard</div>
           </div>
  
-          {!forgot ? (
-            <>
-              <div className="login-tab-bar">
-                <button className={`login-tab ${tab === "login" ? "on" : ""}`} onClick={() => setTab("login")}>Login</button>
-                <button className={`login-tab ${tab === "register" ? "on" : ""}`} onClick={() => navigate("/register")}>Register</button>
-              </div>
- 
-              <div className="lf-group">
-                <label className="lf-label">Email Address</label>
-                <input className={`input-field ${errors.email ? "err" : ""}`} placeholder="akash@gla.ac.in" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
-                {errors.email && <span style={{ fontSize: 11, color: "var(--red)" }}>{errors.email}</span>}
-              </div>
-              <div className="lf-group">
-                <label className="lf-label">Password</label>
-                <div style={{ position: "relative" }}>
-                  <input className={`input-field ${errors.password ? "err" : ""}`} type={showPass ? "text" : "password"} placeholder="••••••••" style={{ paddingRight: 40 }} value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
-                  <button className="pass-eye" onClick={() => setShowPass(s => !s)}>{showPass ? "🙈" : "👁️"}</button>
-                </div>
-                {errors.password && <span style={{ fontSize: 11, color: "var(--red)" }}>{errors.password}</span>}
-              </div>
-              <div style={{ textAlign: "right", marginBottom: 16 }}>
-                <span style={{ fontSize: 13, color: "var(--accent)", cursor: "pointer" }} onClick={() => setForgot(true)}>Forgot password?</span>
-              </div>
- 
-              <button className="btn-primary" style={{ width: "100%", padding: "13px", fontSize: 15 }} onClick={handle} disabled={loading}>
-                {loading ? <span style={{ display: "inline-block", width: 18, height: 18, border: "2px solid rgba(0,0,0,0.3)", borderTopColor: "#000", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} /> : "Login to Dashboard →"}
-              </button>
- 
-              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0", color: "var(--muted)", fontSize: 13 }}>
-                <div style={{ flex: 1, height: 1, background: "var(--border)" }} /><span>or continue with</span><div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-              </div>
-              <div className="social-row">
-                {[["🔵","Google"],["🔷","LinkedIn"],["⚫","GitHub"]].map(([ic,name]) => (
-                  <button key={name} className="soc-btn" onClick={() => { setLoading(true); setTimeout(() => { setLoading(false); onLogin({ email: "social@gla.ac.in", name: "Akash Tiwari", isNew: false }); }, 1200); }}>{ic} {name}</button>
-                ))}
-              </div>
-              <div style={{ textAlign: "center", marginTop: 22, fontSize: 13, color: "var(--muted)" }}>
-                New here? <span style={{ color: "var(--accent)", cursor: "pointer", fontWeight: 700 }} onClick={() => navigate("/register")}>Create an account</span>
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Reset Password</div>
-              <div style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20 }}>Enter your email and we'll send a reset link.</div>
-              {forgotSent ? (
-                <div style={{ background: "rgba(0,212,170,0.08)", border: "1px solid var(--accent)", borderRadius: 12, padding: 16, color: "var(--accent)", fontWeight: 600, textAlign: "center" }}>✅ Reset link sent to {forgotEmail}</div>
-              ) : (
-                <>
-                  <div className="lf-group">
-                    <label className="lf-label">Email Address</label>
-                    <input className="input-field" placeholder="your@email.com" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} />
-                  </div>
-                  <button className="btn-primary" style={{ width: "100%", padding: "13px", fontSize: 15 }} onClick={() => { if (forgotEmail.includes("@")) setForgotSent(true); }}>Send Reset Link</button>
-                </>
-              )}
-              <div style={{ textAlign: "center", marginTop: 16, fontSize: 13 }}>
-                <span style={{ color: "var(--accent)", cursor: "pointer" }} onClick={() => { setForgot(false); setForgotSent(false); }}>← Back to login</span>
-              </div>
-            </>
-          )}
+          <div className="login-tab-bar">
+            <button className={`login-tab ${tab === "login" ? "on" : ""}`} onClick={() => setTab("login")}>Login</button>
+            <button className={`login-tab ${tab === "register" ? "on" : ""}`} onClick={() => navigate("/register")}>Register</button>
+          </div>
+
+          <div className="lf-group">
+            <label className="lf-label">Email Address</label>
+            <input className={`input-field ${errors.email ? "err" : ""}`} placeholder="akash@gla.ac.in" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+            {errors.email && <span style={{ fontSize: 11, color: "var(--red)" }}>{errors.email}</span>}
+          </div>
+          <div className="lf-group">
+            <label className="lf-label">Password</label>
+            <div style={{ position: "relative" }}>
+              <input className={`input-field ${errors.password ? "err" : ""}`} type={showPass ? "text" : "password"} placeholder="••••••••" style={{ paddingRight: 40 }} value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
+              <button className="pass-eye" onClick={() => setShowPass(s => !s)}>{showPass ? "🙈" : "👁️"}</button>
+            </div>
+            {errors.password && <span style={{ fontSize: 11, color: "var(--red)" }}>{errors.password}</span>}
+          </div>
+          <div style={{ textAlign: "right", marginBottom: 16 }}>
+            <span style={{ fontSize: 13, color: "var(--accent)", cursor: "pointer" }} onClick={() => navigate("/forgot-password")}>Forgot password?</span>
+          </div>
+          {apiError && <div style={{ color: "var(--red)", textAlign: "center", marginBottom: 12, fontSize: 13, fontWeight: 600 }}>{apiError}</div>}
+
+          <button className="btn-primary" style={{ width: "100%", padding: "13px", fontSize: 15 }} onClick={handle} disabled={loading}>
+            {loading ? <span style={{ display: "inline-block", width: 18, height: 18, border: "2px solid rgba(0,0,0,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.6s linear infinite" }} /> : "Login to Dashboard →"}
+          </button>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0", color: "var(--muted)", fontSize: 13 }}>
+            <div style={{ flex: 1, height: 1, background: "var(--border)" }} /><span>or continue with</span><div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          </div>
+          <div className="social-row">
+            {["🔵", "Google", "🔷", "LinkedIn", "⚫", "GitHub"].reduce((result, value, index, array) => {
+              if (index % 2 === 0) result.push(array.slice(index, index + 2));
+              return result;
+            }, []).map(([ic,name]) => (
+              <button key={name} className="soc-btn" onClick={() => { setLoading(true); setTimeout(() => { setLoading(false); onLogin({ email: "social@gla.ac.in", name: "Akash Tiwari", isNew: false }); }, 1200); }}>{ic} {name}</button>
+            ))}
+          </div>
+          <div style={{ textAlign: "center", marginTop: 22, fontSize: 13, color: "var(--muted)" }}>
+            New here? <span style={{ color: "var(--accent)", cursor: "pointer", fontWeight: 700 }} onClick={() => navigate("/register")}>Create an account</span>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useState} from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/register.css";
+import authService from "../services/authService";
 
 
 
@@ -12,6 +13,8 @@ export default function RegisterPage({onRegister }) {
     education: "", year: "", interests: [], skills: [], improveSkills: "", about: ""
   });
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState("");
  
   const INTERESTS = ["Machine Learning","Web Dev","Mobile Dev","Data Science","Cybersecurity","Cloud Computing","DSA","UI/UX Design","Blockchain","DevOps"];
   const SKILLS = ["JavaScript","Python","Java","C++","React","Node.js","MongoDB","SQL","Git","Docker"];
@@ -33,16 +36,24 @@ export default function RegisterPage({onRegister }) {
     return e;
   };
  
-  const next = () => {
+  const next = async () => {
     const e = validate(); if (Object.keys(e).length) { setErrors(e); return; }
     setErrors({});
     if (step < 3){
         setStep(s => s + 1);
     }
     else{
-        localStorage.setItem("user", JSON.stringify(form));
-        onRegister(form);
-        navigate("/courses");
+        setLoading(true);
+        setApiError("");
+        try {
+            const data = await authService.register(form);
+            onRegister(data);
+            navigate("/courses");
+        } catch (err) {
+            setApiError(err.response?.data?.message || err.message || "Registration failed");
+        } finally {
+            setLoading(false);
+        }
     }
   };
  
@@ -208,13 +219,14 @@ export default function RegisterPage({onRegister }) {
           )}
  
           <div className="reg-nav">
-            <button className="btn-outline" style={{ padding: "11px 28px", fontSize: 14 }} onClick={() => step > 0 ? setStep(s => s - 1) : navigate("/login")} disabled={false}>
+            <button className="btn-outline" style={{ padding: "11px 28px", fontSize: 14 }} onClick={() => step > 0 ? setStep(s => s - 1) : navigate("/login")} disabled={loading}>
               {step === 0 ? "← Cancel" : "← Back"}
             </button>
-            <button type="button" className="btn-primary" style={{ padding: "11px 28px", fontSize: 14 }} onClick={next}>
-              {step < 3 ? "Continue →" : "Create Account →"}
+            <button type="button" className="btn-primary" style={{ padding: "11px 28px", fontSize: 14 }} onClick={next} disabled={loading}>
+              {loading ? "Creating..." : (step < 3 ? "Continue →" : "Create Account →")}
             </button>
           </div>
+          {apiError && <div style={{ color: "var(--red)", textAlign: "center", marginTop: 12, fontSize: 13, fontWeight: 600 }}>{apiError}</div>}
         </div>
       </div>
     </div>

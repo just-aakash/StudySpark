@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import "../styles/forgot.css";
-
-
 
 const DEMO_OTP = "427183";
  
@@ -521,7 +520,10 @@ function ScreenSuccess({ onLogin }) {
 /* ================================================================
    MAIN — FORGOT PASSWORD COMPONENT
 ================================================================ */
-export default function ForgotPassword({ onBack }) {
+export default function ForgotPassword() {
+  const navigate = useNavigate();
+  const onBack = () => navigate("/login");
+
   const [screen, setScreen] = useState("method");
   const [method, setMethod] = useState("otp");
   const [email, setEmail]   = useState("");
