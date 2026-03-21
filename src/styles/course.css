@@ -1,0 +1,16 @@
+.course-page { min-height: 100vh; background: var(--bg); padding: 80px 5% 60px; }
+  .course-header { text-align: center; margin-bottom: 56px; }
+  .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; max-width: 1100px; margin: 0 auto; }
+  .course-card { background: var(--surface); border: 2px solid var(--border); border-radius: 20px; padding: 28px; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; }
+  .course-card::after { content: ''; position: absolute; inset: 0; background: var(--grad); opacity: 0.04; pointer-events: none; }
+  .course-card:hover { transform: translateY(-5px); }
+  .course-card.sel { border-color: var(--accent); background: rgba(0,212,170,0.04); }
+  .course-card.sel::before { content: '✓'; position: absolute; top: 14px; right: 14px; width: 28px; height: 28px; background: var(--accent); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; }
+  .course-icon { font-size: 44px; margin-bottom: 14px; display: block; }
+  .course-title { font-family: var(--display); font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .course-desc { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+  .course-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .course-tag { font-size: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 8px; color: var(--muted); }
+  .course-footer { max-width: 1100px; margin: 36px auto 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .sel-count { font-size: 14px; color: var(--muted); }
+  .sel-count span { color: var(--accent); font-weight: 700; }
