@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+ 
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #040810;
+  --surface: #0b1220;
+  --surface2: #111c2e;
+  --surface3: #172235;
+  --accent: #00d4aa;
+  --accent2: #6366f1;
+  --text: #e2eaf5;
+  --muted: #4a6080;
+  --border: rgba(0,212,170,0.13);
+  --red: #ef4444;
+  --yellow: #f59e0b;
+  --green: #00d4aa;
+  --font: 'Plus Jakarta Sans', sans-serif;
+  --display: 'Outfit', sans-serif;
+}
+[data-theme="light"] {
+  --bg: #f0f4f8;
+  --surface: #ffffff;
+  --surface2: #eef2f7;
+  --surface3: #e2eaf3;
+  --text: #0f1f35;
+  --muted: #6b8099;
+  --border: rgba(0,130,100,0.15);
+}
+.forgot-container { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: var(--font); 
+    min-height: 100vh; 
+}
+ 
+@keyframes fadeUp { 
+    from { 
+        opacity:0; 
+        transform:translateY(22px); 
+    } 
+    to { 
+        opacity:1; 
+        transform:translateY(0); 
+    } 
+}
+@keyframes fadeIn { 
+    from { 
+        opacity:0; 
+    } 
+    to { 
+        opacity:1; 
+    } 
+}
+@keyframes spin { 
+    to { 
+        transform: rotate(360deg); 
+    } 
+}
+@keyframes shake { 
+    0%,100%{
+        transform:translateX(0)
+    } 
+    20%,60%{
+        transform:translateX(-6px)
+    } 
+    40%,80%{
+        transform:translateX(6px)
+    } 
+}
+@keyframes pulse { 
+    0%,100%{
+        opacity:1
+    } 
+    50%{
+        opacity:0.4
+    } 
+}
+@keyframes slideIn { 
+    from{
+        opacity:0;
+        transform:translateY(12px)
+    } 
+    to{
+        opacity:1;
+        transform:translateY(0)
+    } 
+}
+ 
+.fade-up { 
+    animation: fadeUp 0.45s ease forwards; 
+}
+.shake   { 
+    animation: shake 0.4s ease; 
+}
