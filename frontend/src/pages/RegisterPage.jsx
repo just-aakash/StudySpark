@@ -92,7 +92,7 @@ export default function RegisterPage({onRegister }) {
             <>
               <h3 style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, marginBottom: 24 }}>Personal Information</h3>
               <div className="reg-grid-2">
-                {[["First Name","fname","text","Akash"],["Last Name","lname","text","Tiwari"]].map(([l,k,t,ph]) => (
+                {[["First Name","fname","text","John"],["Last Name","lname","text","Wick"]].map(([l,k,t,ph]) => (
                   <div className="reg-group" key={k}>
                     <label className="reg-label">{l}</label>
                     <input className={`input-field ${errors[k] ? "err" : ""}`} type={t} placeholder={ph} value={form[k]} onChange={e => setF(k, e.target.value)} />
@@ -106,7 +106,7 @@ export default function RegisterPage({onRegister }) {
               </div>
               <div className="reg-group">
                 <label className="reg-label">Email Address</label>
-                <input className={`input-field ${errors.email ? "err" : ""}`} type="email" placeholder="akash@gla.ac.in" value={form.email} onChange={e => setF("email", e.target.value)} />
+                <input className={`input-field ${errors.email ? "err" : ""}`} type="email" placeholder="john.wick@gla.ac.in" value={form.email} onChange={e => setF("email", e.target.value)} />
                 {errors.email && <span style={{ fontSize: 11, color: "var(--red)" }}>{errors.email}</span>}
               </div>
               <div className="reg-group">
@@ -153,7 +153,7 @@ export default function RegisterPage({onRegister }) {
               )}
               <div className="reg-group">
                 <label className="reg-label">College / School Name (optional)</label>
-                <input className="input-field" placeholder="e.g. GLA University, Mathura" />
+                <input className="input-field" placeholder="e.g. Baba Yaga University, London" />
               </div>
               <div className="reg-group">
                 <label className="reg-label">Branch / Stream (optional)</label>

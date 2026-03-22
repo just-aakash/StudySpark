@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/forgot.css";
+import logo from "../assets/logo.png";
 
 const DEMO_OTP = "427183";
  
@@ -564,6 +565,11 @@ export default function ForgotPassword() {
   return (
     <>
       <div className="forgot-container">
+        <div className="bg-bubbles">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <span key={i}></span>
+          ))}
+        </div>
         <div style={{ width: "100%", maxWidth: 460 }}>
  
           {/* CARD */}
@@ -572,7 +578,24 @@ export default function ForgotPassword() {
             {/* TOP BAR */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,var(--accent),#00a87d)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 900, color: "#000", fontFamily: "var(--display)" }}>⚡</div>
+                <div style={{
+                  width: 40,
+                  height: 40,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden"   // important
+                }}>
+                  <img 
+                    src={logo} 
+                    alt="logo" 
+                    style={{
+                    width: "70%",
+                    height: "70%",
+                    objectFit: "contain"
+                    }} 
+                  />
+                </div>
                 <span style={{ fontFamily: "var(--display)", fontWeight: 800, fontSize: 17, background: "linear-gradient(90deg,var(--accent),var(--accent2))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>StudySpark</span>
               </div>
               {screen !== "success" && (

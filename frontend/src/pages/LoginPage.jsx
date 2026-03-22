@@ -72,13 +72,13 @@ export default function LoginPage({onLogin}) {
 
           <div className="lf-group">
             <label className="lf-label">Email Address</label>
-            <input className={`input-field ${errors.email ? "err" : ""}`} placeholder="akash@gla.ac.in" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+            <input className={`input-field ${errors.email ? "err" : ""}`} placeholder="john.wick@gla.ac.in" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
             {errors.email && <span style={{ fontSize: 11, color: "var(--red)" }}>{errors.email}</span>}
           </div>
           <div className="lf-group">
             <label className="lf-label">Password</label>
             <div style={{ position: "relative" }}>
-              <input className={`input-field ${errors.password ? "err" : ""}`} type={showPass ? "text" : "password"} placeholder="••••••••" style={{ paddingRight: 40 }} value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
+              <input className={`input-field ${errors.password ? "err" : ""}`} type={showPass ? "text" : "password"} placeholder="********" style={{ paddingRight: 40 }} value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
               <button className="pass-eye" onClick={() => setShowPass(s => !s)}>{showPass ? "🙈" : "👁️"}</button>
             </div>
             {errors.password && <span style={{ fontSize: 11, color: "var(--red)" }}>{errors.password}</span>}

@@ -180,8 +180,7 @@
 .bg-bubbles span:nth-child(8) { left: 95%; animation-duration: 7s; }
 .bg-bubbles span:nth-child(9) { left: 40%; animation-duration: 15s; }
 .bg-bubbles span:nth-child(10) { left: 60%; animation-duration: 10s; }
-.login-page,
-.reg-page {
+.login-page {
   position: relative;
   z-index: 1;
 }
