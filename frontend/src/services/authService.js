@@ -2,26 +2,39 @@ import api from './api.js';
 
 // Register user
 const register = async (userData) => {
-  const response = await api.post('/auth/register', userData);
-  
-  if (response.data) {
-    localStorage.setItem('user', JSON.stringify(response.data));
-    localStorage.setItem('token', response.data.token);
+  try {
+    const response = await api.post('/auth/register', userData);
+    saveUserData(response.data);
+    return response.data;
+  } catch (err) {
+    if (err.isMock) {
+      saveUserData(err.data);
+      return err.data;
+    }
+    throw err;
   }
-  
-  return response.data;
 };
 
 // Login user
 const login = async (credentials) => {
-  const response = await api.post('/auth/login', credentials);
-  
-  if (response.data) {
-    localStorage.setItem('user', JSON.stringify(response.data));
-    localStorage.setItem('token', response.data.token);
+  try {
+    const response = await api.post('/auth/login', credentials);
+    saveUserData(response.data);
+    return response.data;
+  } catch (err) {
+    if (err.isMock) {
+      saveUserData(err.data);
+      return err.data;
+    }
+    throw err;
   }
-  
-  return response.data;
+};
+
+const saveUserData = (data) => {
+  if (data) {
+    localStorage.setItem('user', JSON.stringify(data));
+    localStorage.setItem('token', data.token);
+  }
 };
 
 // Logout user
