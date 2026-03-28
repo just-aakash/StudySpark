@@ -20,6 +20,8 @@ function App() {
     console.log("Registered:", data);
   };
 
+  const [courses, setCourses] = useState([]);
+
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
@@ -27,7 +29,7 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
       <Route path="/dashboard" element={<DashboardPage user={user} />} />
-      <Route path="/courses" element={<CoursePage user={user} />} />
+      <Route path="/courses" element={<CoursePage user={user} onCourseSelect={handleCourseSelect} />} />
     </Routes>
   );
 }
