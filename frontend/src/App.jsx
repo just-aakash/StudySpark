@@ -20,6 +20,10 @@ function App() {
     console.log("Registered:", data);
   };
 
+  const handleCourseSelect = (selectedCourses) => {
+    setCourses(selectedCourses);
+  };
+
   const [courses, setCourses] = useState([]);
 
   return (
