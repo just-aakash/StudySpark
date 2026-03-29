@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "../styles/home.css";
+import "../styles/Home.css";
 import Modal from "../components/Modal";
 import logo from "../assets/logo.png";
 import { motion } from "framer-motion";
