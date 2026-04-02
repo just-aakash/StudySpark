@@ -54,7 +54,7 @@ export default function CoursePage({ user, onCourseSelect }) {
             onCourseSelect(selected);
             navigate("/dashboard");
           }} >
-          Generate My Roadmap →
+          On your way lord commander →
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import "../styles/Dashboard.css";
 import { useNavigate } from "react-router-dom";
 import authService from "../services/authService";
+import logo from "../assets/logo.png";
 
 const MOCK = {
   user: { name: "Akash Tiwari", email: "akash@gla.ac.in", roll: "2415000153", branch: "CSE", sem: "4th", av: "AT" },
@@ -117,13 +118,13 @@ function DashboardPage({ user, courses, theme, setTheme }) {
   const SIDEBAR = [
     { section: "MAIN" },
     { id: "dashboard", icon: "⊞", label: "Dashboard" },
-    { id: "roadmap", icon: "🛣️", label: "Roadmap" },
-    { id: "checkpoint", icon: "📋", label: "Checkpoint Tests" },
-    { id: "analytics", icon: "📊", label: "Performance Analytics" },
-    { id: "courses", icon: "📚", label: "My Courses" },
+    { id: "roadmap", icon: "⊞", label: "Roadmap" },
+    { id: "checkpoint", icon: "⊞", label: "Checkpoint Tests" },
+    { id: "analytics", icon: "⊞", label: "Performance Analytics" },
+    { id: "courses", icon: "⊞", label: "My Courses" },
     { section: "INFO" },
-    { id: "aboutus", icon: "👥", label: "About Us" },
-    { id: "contact", icon: "✉️", label: "Contact Us" },
+    { id: "aboutus", icon: "⊞", label: "About Us" },
+    { id: "contact", icon: "⊞", label: "Contact Us" },
   ];
  
   const searchItems = SIDEBAR.filter(s => s.id && s.label.toLowerCase().includes(search.toLowerCase()));
@@ -147,7 +148,9 @@ function DashboardPage({ user, courses, theme, setTheme }) {
       {/* SIDEBAR */}
       <aside className="sidebar" style={{ "--sw": sbOpen ? "240px" : "62px" }}>
         <div className="sb-top" onClick={() => setSbOpen(s => !s)}>
-          <div className="sb-logo-box">⚡</div>
+          <div className="sb-logo-box">
+            <img src={logo} alt="logo" className="sb-logo-img" />
+          </div>
           <span className={`sb-logo-name ${!sbOpen ? "hide" : ""}`}>StudySpark</span>
         </div>
         <div className="sb-nav">
@@ -163,7 +166,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
         </div>
         <div className="sb-foot">
           <button className="sb-logout" onClick={() => navigate("/")}>
-            <span className="sb-icon">🚪</span>
+            <span className="sb-icon">↪</span>
             <span className={`sb-lbl ${!sbOpen ? "hide" : ""}`}>Logout</span>
           </button>
         </div>
@@ -203,7 +206,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                 </div>
                 <div className="pdrop-item" onClick={() => { setModal({ type: "editProfile" }); setProfOpen(false); }}>✏️<span>Edit Profile</span></div>
                 <div className="pdrop-item" onClick={() => { setModal({ type: "settings" }); setProfOpen(false); }}>⚙️<span>Settings</span></div>
-                <div className="pdrop-item danger" onClick={() => navigate("/")}>🚪<span>Logout</span></div>
+                <div className="pdrop-item danger" onClick={() => navigate("/")}>↪<span>Logout</span></div>
               </div>
             )}
           </div>
@@ -217,8 +220,8 @@ function DashboardPage({ user, courses, theme, setTheme }) {
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
                 <div>
-                  <div className="page-h">Dashboard 👋</div>
-                  <div className="page-sub">Welcome back, {MOCK.user.name.split(" ")[0]}. Here's your academic snapshot.</div>
+                  {/* <div className="page-h">Dashboard 👋</div> */}
+                  <div className="page-h">Welcome back, {MOCK.user.name.split(" ")[0]}.</div>
                 </div>
                 <div style={{ fontSize: 12, color: "var(--muted)" }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", month: "long", day: "numeric" })}</div>
               </div>
@@ -226,10 +229,10 @@ function DashboardPage({ user, courses, theme, setTheme }) {
               {/* STAT CARDS */}
               <div className="g4">
                 {[
-                  { icon: "📈", label: "Overall Progress", val: `${risk}%`, sub: "5 subjects", color: riskColor },
-                  { icon: "✅", label: "Tasks Today", val: `${doneTasks}/${tasks.length}`, sub: "Completed", color: "var(--accent3)" },
-                  { icon: "🔥", label: "Streak", val: "14 days", sub: "Keep it up!", color: "var(--accent4)" },
-                  { icon: "⚠️", label: "Risk Level", val: riskLabel, sub: "Current status", color: riskColor },
+                  { label: "Overall Progress", val: `${risk}%`, sub: "5 subjects", color: riskColor },
+                  { label: "Tasks Today", val: `${doneTasks}/${tasks.length}`, sub: "Completed", color: "var(--accent3)" },
+                  { label: "Streak", val: "14 days", sub: "Keep it up!", color: "var(--accent4)" },
+                  { label: "Risk Level", val: riskLabel, sub: "Current status", color: riskColor },
                 ].map(s => (
                   <div className="wg" key={s.label} onClick={() => setModal({ type: "stat", data: s })}>
                     <div className="wg-title">{s.icon} {s.label}</div>
@@ -242,7 +245,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
               <div className="g2">
                 {/* ROADMAP PROGRESS */}
                 <div className="wg" onClick={() => setModal({ type: "roadmap" })}>
-                  <div className="wg-title">🗺️ Roadmap Progress</div>
+                  <div className="wg-title">Roadmap Progress</div>
                   {MOCK.roadmap.map(r => (
                     <div key={r.topic} style={{ marginBottom: 11 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
@@ -255,7 +258,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
  
                 {/* CHECKPOINT SCORES */}
                 <div className="wg" onClick={() => setModal({ type: "cpScores" })}>
-                  <div className="wg-title">📋 Checkpoint Scores</div>
+                  <div className="wg-title">Checkpoint Scores</div>
                   {MOCK.cpScores.map(c => (
                     <div key={c.week} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                       <span style={{ fontSize: 12, color: "var(--muted)", width: 24 }}>{c.week}</span>
@@ -298,7 +301,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
               <div className="g2">
                 {/* WEAK TOPIC HEATMAP */}
                 <div className="wg" onClick={() => setModal({ type: "heatmap" })}>
-                  <div className="wg-title">🔥 Weak Topic Heatmap</div>
+                  <div className="wg-title">Weak Topic Heatmap</div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 }}>
                     {MOCK.weakTopics.map(t => (
                       <div key={t.t} className="heat-cell"
@@ -317,7 +320,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                     {["S","M","T","W","T","F","S"].map((d,i) => <div key={i} style={{ flex: 1, fontSize: 10, textAlign: "center", color: "var(--muted)" }}>{d}</div>)}
                   </div>
                   {MOCK.consistency.map((wk, wi) => (
-                    <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3, marginBottom: 3 }}>
+                    <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7,auto)",gridAutoFlow: "column", gap: 6, marginBottom: 3 }}>
                       {wk.map((d, di) => <div key={di} className="day-sq" style={{ background: d ? "var(--accent)" : "var(--surface2)", opacity: d ? 0.75 + wi * 0.03 : 1 }} />)}
                     </div>
                   ))}
@@ -388,7 +391,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
           {/* ── ROADMAP PAGE ── */}
           {active === "roadmap" && (
             <div>
-              <div className="page-h">🛣️ Study Roadmap</div>
+              <div className="page-h">Study Roadmap</div>
               <div className="page-sub">Your personalized learning path — zigzag through each milestone.</div>
               <div style={{ maxWidth: 700, margin: "0 auto", position: "relative" }}>
                 {MOCK.roadPath.map((node, i) => (
@@ -422,7 +425,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
           {/* ── CHECKPOINT TESTS ── */}
           {active === "checkpoint" && (
             <div>
-              <div className="page-h">📋 Checkpoint Tests</div>
+              <div className="page-h">Checkpoint Tests</div>
               <div className="page-sub">AI-generated conceptual questions. Your score shapes your roadmap.</div>
  
               {!testState.started ? (
@@ -431,7 +434,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                     {MOCK.upcoming.map((c,i) => (
                       <div key={i} className="wg">
                         <div style={{ fontFamily: "var(--display)", fontSize: 17, fontWeight: 700, marginBottom: 8 }}>{c.title}</div>
-                        <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>📅 {c.date} · {c.topics.join(", ")}</div>
+                        <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>{c.date} · {c.topics.join(", ")}</div>
                         <Countdown days={c.days} />
                         <button className="btn-primary" style={{ marginTop: 16, width: "100%", padding: "11px", fontSize: 14 }} onClick={startTest}>Start Test →</button>
                       </div>
@@ -443,7 +446,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                       <span style={{ fontSize: 13, fontWeight: 700, color: "var(--muted)", width: 28 }}>{c.week}</span>
                       <div className="bar-track" style={{ flex: 1 }}><div className="bar-fill" style={{ width: `${c.s}%`, background: c.s >= 70 ? "var(--green)" : c.s >= 50 ? "var(--yellow)" : "var(--red)" }} /></div>
                       <span style={{ fontWeight: 800, color: c.s >= 70 ? "var(--green)" : c.s >= 50 ? "var(--yellow)" : "var(--red)", width: 36, textAlign: "right" }}>{c.s}%</span>
-                      <span style={{ fontSize: 12, color: "var(--muted)", width: 70 }}>{c.s >= 70 ? "✅ Passed" : c.s >= 50 ? "⚠️ Average" : "❌ Failed"}</span>
+                      <span style={{ fontSize: 12, color: "var(--muted)", width: 70 }}>{c.s >= 70 ? "  Passed" : c.s >= 50 ? "  Average" : "  Failed"}</span>
                     </div>
                   ))}
                 </>
@@ -572,20 +575,19 @@ function DashboardPage({ user, courses, theme, setTheme }) {
           )}
  
           {/* ── ABOUT US ── */}
-          {active === "aboutus" && (
             <div>
               <div className="page-h">👥 About StudySpark</div>
               <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: 28, marginBottom: 24 }}>
                 <div style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--accent)", marginBottom: 12 }}>StudySpark – AI Habit Forge</div>
-                <p style={{ color: "var(--muted)", lineHeight: 1.8 }}>An AI-based preventive academic monitoring and adaptive study management system designed to improve student consistency and academic performance at GLA University, Mathura. B.Tech CSE 2025–26 project under Dr. Sayantan Sinha.</p>
+                <p style={{ color: "var(--muted)", lineHeight: 1.8 }}>An AI-based preventive academic monitoring and adaptive study management system designed to improve student consistency and academic performance</p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 18 }}>
                 {[
-                  { name: "Akash Tiwari", roll: "2415000153", role: "Team Lead & Backend", av: "AT", col: "#00d4aa" },
-                  { name: "Akash Foujdar", roll: "2415000147", role: "Frontend Dev", av: "AF", col: "#6366f1" },
-                  { name: "Lakshay Sharma", roll: "2415000883", role: "AI/ML Engineer", av: "LS", col: "#f59e0b" },
-                  { name: "Dhruv Tyagi", roll: "2415000548", role: "Database & API", av: "DT", col: "#ef4444" },
-                  { name: "Jayant Kumar", roll: "2415000728", role: "UI/UX Designer", av: "JK", col: "#a855f7" },
+                  { name: "Akash Tiwari", role: "UI/UX & Frontend Dev", av: "AT", col: "#00d4aa" },
+                  { name: "Akash Foujdar", role: "Backend", av: "AF", col: "#6366f1" },
+                  { name: "Lakshay Sharma", role: "Frontend Dev", av: "LS", col: "#f59e0b" },
+                  { name: "Dhruv Tyagi", role: "Backend & API", av: "DT", col: "#ef4444" },
+                  { name: "Jayant Kumar", role: "Database", av: "JK", col: "#a855f7" },
                 ].map(m => (
                   <div key={m.roll} className="wg" style={{ textAlign: "center" }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: m.col+"22", color: m.col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, margin: "0 auto 12px", fontFamily: "var(--display)" }}>{m.av}</div>
@@ -596,7 +598,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                 ))}
               </div>
             </div>
-          )}
+          
  
           {/* ── CONTACT ── */}
           {active === "contact" && (
@@ -618,7 +620,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                   <button className="btn-primary" style={{ width: "100%", padding: "12px", fontSize: 15 }}>Send Message →</button>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {[["📍","Address","GLA University, Mathura, UP 281406"],["📧","Email","studyspark@gla.ac.in"],["👨‍🏫","Supervisor","Dr. Sayantan Sinha"],["🎓","Dept.","Computer Engineering & Applications"]].map(([ic,l,v]) => (
+                  {[["📍","Address","GLA University, Mathura, UP 281406"],["📧","Email","studyspark@gla.ac.in"],["🎓","Team","StudySpark: AI Habit Forge"]].map(([ic,l,v]) => (
                     <div key={l} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "16px 18px", display: "flex", gap: 14, alignItems: "center" }}>
                       <span style={{ fontSize: 22 }}>{ic}</span>
                       <div><div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>{l}</div><div style={{ fontSize: 14, fontWeight: 600, marginTop: 2 }}>{v}</div></div>
