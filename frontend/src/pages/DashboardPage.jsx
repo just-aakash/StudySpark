@@ -3,6 +3,7 @@ import "../styles/Dashboard.css";
 import { useNavigate } from "react-router-dom";
 import authService from "../services/authService";
 import logo from "../assets/logo.png";
+import Modal from "../components/Modal";
 
 const MOCK = {
   user: { name: "Akash Tiwari", email: "akash@gla.ac.in", roll: "2415000153", branch: "CSE", sem: "4th", av: "AT" },
@@ -95,6 +96,7 @@ function Countdown({ days }) {
 }
  
 function DashboardPage({ user, courses, theme, setTheme }) {
+  const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
   const [sbOpen, setSbOpen] = useState(true);
   const [search, setSearch] = useState("");
@@ -234,7 +236,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                   { label: "Streak", val: "14 days", sub: "Keep it up!", color: "var(--accent4)" },
                   { label: "Risk Level", val: riskLabel, sub: "Current status", color: riskColor },
                 ].map(s => (
-                  <div className="wg" key={s.label} onClick={() => setModal({ type: "stat", data: s })}>
+                  <div className="wg" key={s.label}>
                     <div className="wg-title">{s.icon} {s.label}</div>
                     <div style={{ fontSize: 28, fontWeight: 900, color: s.color, fontFamily: "var(--display)" }}>{s.val}</div>
                     <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>{s.sub}</div>
@@ -244,7 +246,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
  
               <div className="g2">
                 {/* ROADMAP PROGRESS */}
-                <div className="wg" onClick={() => setModal({ type: "roadmap" })}>
+                <div className="wg">
                   <div className="wg-title">Roadmap Progress</div>
                   {MOCK.roadmap.map(r => (
                     <div key={r.topic} style={{ marginBottom: 11 }}>
@@ -257,7 +259,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                 </div>
  
                 {/* CHECKPOINT SCORES */}
-                <div className="wg" onClick={() => setModal({ type: "cpScores" })}>
+                <div className="wg">
                   <div className="wg-title">Checkpoint Scores</div>
                   {MOCK.cpScores.map(c => (
                     <div key={c.week} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -271,9 +273,9 @@ function DashboardPage({ user, courses, theme, setTheme }) {
  
               <div className="g3">
                 {/* TODAY'S TASKS */}
-                <div className="wg" style={{ gridColumn: "span 2" }} onClick={e => e.currentTarget === e.target && setModal({ type: "tasks" })}>
+                <div className="wg" style={{ gridColumn: "span 2" }}>
                   <div className="wg-title" style={{ cursor: "default" }}>📅 Today's Study Tasks
-                    <span style={{ marginLeft: "auto", fontSize: 12, color: "var(--accent)", cursor: "pointer" }} onClick={() => setModal({ type: "tasks" })}>View all</span>
+                    <span style={{ marginLeft: "auto", fontSize: 12, color: "var(--accent)", cursor: "pointer" }}>View all</span>
                   </div>
                   {tasks.slice(0, 4).map(t => (
                     <div key={t.id} className="task-row">
@@ -287,7 +289,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                 </div>
  
                 {/* RISK LEVEL */}
-                <div className="wg" onClick={() => setModal({ type: "risk" })}>
+                <div className="wg">
                   <div className="wg-title">⚠️ Risk Level</div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: 120 }}>
                     <div style={{ width: 80, height: 80, borderRadius: "50%", border: `3px solid ${riskColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", animation: "glow 2s ease-in-out infinite" }}>
@@ -300,7 +302,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
  
               <div className="g2">
                 {/* WEAK TOPIC HEATMAP */}
-                <div className="wg" onClick={() => setModal({ type: "heatmap" })}>
+                <div className="wg">
                   <div className="wg-title">Weak Topic Heatmap</div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8 }}>
                     {MOCK.weakTopics.map(t => (
@@ -314,23 +316,39 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                 </div>
  
                 {/* CONSISTENCY TRACKER */}
-                <div className="wg" onClick={() => setModal({ type: "consistency" })}>
+                <div className="wg">
                   <div className="wg-title">🔗 Consistency Tracker</div>
-                  <div style={{ display: "flex", gap: 4, marginBottom: 6 }}>
-                    {["S","M","T","W","T","F","S"].map((d,i) => <div key={i} style={{ flex: 1, fontSize: 10, textAlign: "center", color: "var(--muted)" }}>{d}</div>)}
-                  </div>
-                  {MOCK.consistency.map((wk, wi) => (
-                    <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7,auto)",gridAutoFlow: "column", gap: 6, marginBottom: 3 }}>
-                      {wk.map((d, di) => <div key={di} className="day-sq" style={{ background: d ? "var(--accent)" : "var(--surface2)", opacity: d ? 0.75 + wi * 0.03 : 1 }} />)}
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>Current Month - March 2025</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 12 }}>
+                      {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d,i) => <div key={i} style={{ fontSize: 8, textAlign: "center", color: "var(--muted)", fontWeight: 700, paddingBottom: 4 }}>{d}</div>)}
+                      {Array.from({length: 42}).map((_, i) => {
+                        const startDay = 5; // March 1, 2025 is Saturday
+                        const day = i - startDay + 1;
+                        const isCurrentMonth = day >= 1 && day <= 31;
+                        const intensity = isCurrentMonth && Math.random() > 0.3 ? Math.floor(Math.random() * 6) : 0;
+                        const colors = ["var(--surface3)", "rgba(0,212,170,0.15)", "rgba(0,212,170,0.3)", "rgba(0,212,170,0.5)", "rgba(0,212,170,0.75)", "var(--accent)"];
+                        return (
+                          <div key={i} style={{ aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center", background: isCurrentMonth ? colors[intensity] : "transparent", border: isCurrentMonth ? "1px solid var(--border)" : "none", borderRadius: 3, fontSize: 7.5, color: isCurrentMonth ? "var(--text)" : "transparent", fontWeight: 600 }}>
+                            {isCurrentMonth ? day : ""}
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                  <div style={{ fontSize: 13, marginTop: 10 }}>🔥 <strong style={{ color: "var(--accent)" }}>14-day</strong> streak</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 4, alignItems: "center", fontSize: 9, color: "var(--muted)" }}>
+                    <span>Less</span>
+                    {["var(--surface3)", "rgba(0,212,170,0.15)", "rgba(0,212,170,0.3)", "rgba(0,212,170,0.5)", "rgba(0,212,170,0.75)", "var(--accent)"].map((col, i) => (
+                      <div key={i} style={{ width: 8, height: 8, borderRadius: 1.5, background: col, border: "0.5px solid var(--border)" }} />
+                    ))}
+                    <span>More</span>
+                  </div>
                 </div>
               </div>
  
               <div className="g2">
                 {/* PERFORMANCE TREND */}
-                <div className="wg" onClick={() => setModal({ type: "trend" })}>
+                <div className="wg">
                   <div className="wg-title">📈 Performance Trend</div>
                   <svg viewBox="0 0 300 90" style={{ width: "100%", overflow: "visible" }}>
                     <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--accent)" stopOpacity="0.25" /><stop offset="100%" stopColor="var(--accent)" stopOpacity="0" /></linearGradient></defs>
@@ -345,7 +363,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                 </div>
  
                 {/* ROUTINE HISTORY */}
-                <div className="wg" onClick={() => setModal({ type: "history" })}>
+                <div className="wg">
                   <div className="wg-title">🔄 Routine Change History</div>
                   {MOCK.history.map((h,i) => (
                     <div key={i} style={{ display: "flex", gap: 12, padding: "10px 0", borderBottom: "1px solid var(--border)", alignItems: "flex-start" }}>
@@ -360,7 +378,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
  
               {/* UPCOMING CHECKPOINT */}
               <div className="g2">
-                <div className="wg" onClick={() => setModal({ type: "upcoming" })}>
+                <div className="wg">
                   <div className="wg-title">⏰ Upcoming Checkpoints</div>
                   {MOCK.upcoming.map((c,i) => (
                     <div key={i} style={{ background: "var(--surface2)", borderRadius: 12, padding: "14px 16px", marginBottom: 12 }}>
@@ -373,7 +391,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                 </div>
  
                 {/* BADGES */}
-                <div className="wg" onClick={() => setModal({ type: "badges" })}>
+                <div className="wg">
                   <div className="wg-title">🏆 Badges Earned</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
                     {MOCK.badges.map(b => (
@@ -440,13 +458,13 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                       </div>
                     ))}
                   </div>
-                  <div className="page-h" style={{ fontSize: 18, marginBottom: 14 }}>Past Results</div>
+                  <div className="page-h" style={{ fontSize: 14, marginBottom: 12 }}>Past Results</div>
                   {MOCK.cpScores.map((c,i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "12px 18px", marginBottom: 10 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: "var(--muted)", width: 28 }}>{c.week}</span>
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "8px 14px", marginBottom: 8 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", width: 24 }}>{c.week}</span>
                       <div className="bar-track" style={{ flex: 1 }}><div className="bar-fill" style={{ width: `${c.s}%`, background: c.s >= 70 ? "var(--green)" : c.s >= 50 ? "var(--yellow)" : "var(--red)" }} /></div>
-                      <span style={{ fontWeight: 800, color: c.s >= 70 ? "var(--green)" : c.s >= 50 ? "var(--yellow)" : "var(--red)", width: 36, textAlign: "right" }}>{c.s}%</span>
-                      <span style={{ fontSize: 12, color: "var(--muted)", width: 70 }}>{c.s >= 70 ? "  Passed" : c.s >= 50 ? "  Average" : "  Failed"}</span>
+                      <span style={{ fontWeight: 700, color: c.s >= 70 ? "var(--green)" : c.s >= 50 ? "var(--yellow)" : "var(--red)", width: 32, textAlign: "right", fontSize: 12 }}>{c.s}%</span>
+                      <span style={{ fontSize: 11, color: "var(--muted)", width: 60 }}>{c.s >= 70 ? "Passed" : c.s >= 50 ? "Average" : "Failed"}</span>
                     </div>
                   ))}
                 </>
@@ -575,6 +593,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
           )}
  
           {/* ── ABOUT US ── */}
+          {active === "aboutus" && (
             <div>
               <div className="page-h">👥 About StudySpark</div>
               <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: 28, marginBottom: 24 }}>
@@ -598,7 +617,7 @@ function DashboardPage({ user, courses, theme, setTheme }) {
                 ))}
               </div>
             </div>
-          
+          )}
  
           {/* ── CONTACT ── */}
           {active === "contact" && (
@@ -702,16 +721,75 @@ function DashboardPage({ user, courses, theme, setTheme }) {
       )}
       {modal?.type === "consistency" && (
         <Modal title="🔗 Consistency Tracker" onClose={() => setModal(null)}>
-          <p style={{ color: "var(--muted)", marginBottom: 18 }}>Green = studied · Dark = missed</p>
-          <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
-            {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => <div key={d} style={{ flex: 1, textAlign: "center", fontSize: 11, color: "var(--muted)" }}>{d}</div>)}
-          </div>
-          {MOCK.consistency.map((wk,wi) => (
-            <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4, marginBottom: 4 }}>
-              {wk.map((d,di) => <div key={di} className="day-sq" style={{ background: d ? "var(--accent)" : "var(--surface3)", opacity: d ? 0.8 + wi * 0.025 : 1 }} />)}
+          <div style={{ marginBottom: 24 }}>
+            {/* STATS */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12, marginBottom: 24 }}>
+              <div style={{ background: "rgba(0,212,170,0.08)", border: "1px solid rgba(0,212,170,0.2)", borderRadius: 10, padding: 12, textAlign: "center" }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: "var(--accent)", fontFamily: "var(--display)" }}>🔥 14</div>
+                <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 4, fontWeight: 600 }}>Day Streak</div>
+              </div>
+              <div style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 10, padding: 12, textAlign: "center" }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: "#6366f1", fontFamily: "var(--display)" }}>28</div>
+                <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 4, fontWeight: 600 }}>Study Days</div>
+              </div>
+              <div style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: 10, padding: 12, textAlign: "center" }}>
+                <div style={{ fontSize: 24, fontWeight: 900, color: "#f59e0b", fontFamily: "var(--display)" }}>90%</div>
+                <div style={{ fontSize: 10, color: "var(--muted)", marginTop: 4, fontWeight: 600 }}>Consistency</div>
+              </div>
             </div>
-          ))}
-          <div style={{ marginTop: 14, fontSize: 14 }}>🔥 Current streak: <strong style={{ color: "var(--accent)" }}>14 days</strong></div>
+
+            {/* CURRENT MONTH */}
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 12 }}>March 2025</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3 }}>
+                {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => <div key={d} style={{ fontSize: 10, fontWeight: 700, textAlign: "center", color: "var(--muted)", paddingBottom: 6 }}>{d}</div>)}
+                {Array.from({length: 42}).map((_, i) => {
+                  const startDay = 5; // March 1, 2025 is Saturday
+                  const day = i - startDay + 1;
+                  const isCurrentMonth = day >= 1 && day <= 31;
+                  const intensity = isCurrentMonth && Math.random() > 0.25 ? Math.floor(Math.random() * 6) : 0;
+                  const colors = ["var(--surface3)", "rgba(0,212,170,0.15)", "rgba(0,212,170,0.3)", "rgba(0,212,170,0.5)", "rgba(0,212,170,0.75)", "var(--accent)"];
+                  return (
+                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "center", aspectRatio: "1", background: isCurrentMonth ? colors[intensity] : "transparent", border: isCurrentMonth ? "1px solid var(--border)" : "none", borderRadius: 6, fontSize: 11, fontWeight: 600, color: isCurrentMonth ? "var(--text)" : "transparent", cursor: isCurrentMonth ? "default" : "pointer" }} title={isCurrentMonth ? `${day} - ${intensity > 0 ? "Active" : "Not studied"}` : ""}>
+                      {isCurrentMonth ? day : ""}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* PREVIOUS MONTH */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 12 }}>February 2025</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3 }}>
+                {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => <div key={d} style={{ fontSize: 10, fontWeight: 700, textAlign: "center", color: "var(--muted)", paddingBottom: 6 }}>{d}</div>)}
+                {Array.from({length: 35}).map((_, i) => {
+                  const startDay = 2; // February 1, 2025 is Saturday
+                  const day = i - startDay + 1;
+                  const isCurrentMonth = day >= 1 && day <= 28;
+                  const intensity = isCurrentMonth && Math.random() > 0.2 ? Math.floor(Math.random() * 6) : 0;
+                  const colors = ["var(--surface3)", "rgba(0,212,170,0.15)", "rgba(0,212,170,0.3)", "rgba(0,212,170,0.5)", "rgba(0,212,170,0.75)", "var(--accent)"];
+                  return (
+                    <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "center", aspectRatio: "1", background: isCurrentMonth ? colors[intensity] : "transparent", border: isCurrentMonth ? "1px solid var(--border)" : "none", borderRadius: 6, fontSize: 11, fontWeight: 600, color: isCurrentMonth ? "var(--text)" : "transparent", cursor: isCurrentMonth ? "default" : "pointer" }} title={isCurrentMonth ? `${day} - ${intensity > 0 ? "Active" : "Not studied"}` : ""}>
+                      {isCurrentMonth ? day : ""}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* LEGEND */}
+            <div style={{ padding: "16px 0", borderTop: "1px solid var(--border)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, marginBottom: 10, color: "var(--text)" }}>Contribution Levels:</div>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <span style={{ fontSize: 10, color: "var(--muted)" }}>None</span>
+                {["var(--surface3)", "rgba(0,212,170,0.15)", "rgba(0,212,170,0.3)", "rgba(0,212,170,0.5)", "rgba(0,212,170,0.75)", "var(--accent)"].map((col, i) => (
+                  <div key={i} style={{ width: 20, height: 20, borderRadius: 4, background: col, border: "1px solid var(--border)", cursor: "default" }} title={["Empty", "Low", "Few", "Moderate", "High", "Very High"][i]} />
+                ))}
+                <span style={{ fontSize: 10, color: "var(--muted)" }}>Very High</span>
+              </div>
+            </div>
+          </div>
           <div style={{ marginTop: 16 }}>
             <div style={{ fontWeight: 700, marginBottom: 10 }}>🏆 Badges</div>
             {MOCK.badges.map(b => (
