@@ -67,6 +67,30 @@ export const loginUser = async (req, res) => {
 // @desc    Mock password reset functionality
 // @route   POST /api/auth/forgot-password
 // @access  Public
-export const forgotPassword = async (req, res) => {
-  res.status(200).json({ message: 'Password reset link sent to your email.' });
+ const forgotPassword = async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const resetToken = user.getResetPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+
+    const message = `Reset your password: ${resetUrl}`;
+
+    await sendEmail({
+      email: user.email,
+      subject: 'Password Reset',
+      message,
+    });
+
+    res.status(200).json({ message: 'Email sent' });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
