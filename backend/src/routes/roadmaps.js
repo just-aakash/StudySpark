@@ -1,20 +1,16 @@
 import express from 'express';
-// import { protect } from '../middleware/authMiddleware.js';
+import { protect } from '../middlewares/authMiddleware.js';
+import {
+  generateRoadmap,
+  getActiveRoadmap,
+  updateNodeStatus,
+} from '../controllers/roadmapController.js';
 
 const router = express.Router();
 
-// @route   POST /api/roadmaps/generate
-// @desc    Generate a new roadmap based on user skills
-// @access  Private (Mock)
-router.post('/generate', (req, res) => {
-    res.json({ message: 'Mock AI Roadmap Generation successful.' });
-});
-
-// @route   GET /api/roadmaps/active
-// @desc    Get user's active roadmap
-// @access  Private (Mock)
-router.get('/active', (req, res) => {
-    res.json({ message: 'Fetched active roadmap data.' });
-});
+// All roadmap routes require authentication
+router.post('/generate', protect, generateRoadmap);
+router.get('/active', protect, getActiveRoadmap);
+router.patch('/node/:nodeIndex', protect, updateNodeStatus);
 
 export default router;

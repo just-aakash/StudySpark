@@ -21,20 +21,37 @@ export default function CoursePage({ user, onCourseSelect }) {
  
   const toggle = (id) => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      await import("../services/roadmapService").then(m => m.default.generateRoadmap(selected));
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to generate roadmap. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="course-page">
+      {/* ... header ... */}
       <div className="course-header">
         <div style={{ fontSize: 48, marginBottom: 12 }}>🎓</div>
         <div style={{ display: "inline-block", background: "rgba(0,212,170,0.08)", border: "1px solid rgba(0,212,170,0.2)", borderRadius: 99, padding: "5px 14px", fontSize: 12, color: "var(--accent)", fontWeight: 700, letterSpacing: 2, marginBottom: 16 }}>STEP 5 · CHOOSE YOUR PATH</div>
         <h1 style={{ fontFamily: "var(--display)", fontSize: "clamp(28px,4vw,46px)", fontWeight: 800, marginBottom: 14 }}>
-          Welcome, {user?.fname || "Explorer"}! 🎉<br />
+          Welcome! 🎉<br />
           <span style={{ color: "var(--accent)" }}>Choose Your Courses</span>
         </h1>
         <p style={{ color: "var(--muted)", fontSize: 17, maxWidth: 560, margin: "0 auto", lineHeight: 1.7 }}>
           Select at least one course. StudySpark will generate a personalized AI roadmap and study plan based on your selection and skill profile.
         </p>
       </div>
- 
+
       <div className="course-grid">
         {COURSES.map(c => (
           <div key={c.id} className={`course-card ${selected.includes(c.id) ? "sel" : ""}`} onClick={() => toggle(c.id)} style={{ "--grad": c.grad }}>
@@ -45,16 +62,14 @@ export default function CoursePage({ user, onCourseSelect }) {
           </div>
         ))}
       </div>
- 
+
       <div className="course-footer">
         <div className="sel-count">
           {selected.length === 0 ? "Select at least 1 course to continue" : <><span>{selected.length}</span> course{selected.length > 1 ? "s" : ""} selected — roadmap will be generated for each</>}
         </div>
-        <button className="btn-primary" style={{ padding: "13px 36px", fontSize: 15 }} disabled={selected.length === 0} onClick={() => {
-            onCourseSelect(selected);
-            navigate("/dashboard");
-          }} >
-          On your way lord commander →
+        {error && <div style={{ color: "var(--red)", fontSize: 13, marginBottom: 12 }}>{error}</div>}
+        <button className="btn-primary" style={{ padding: "13px 36px", fontSize: 15 }} disabled={selected.length === 0 || loading} onClick={handleGenerate} >
+          {loading ? "Generating Roadmap..." : "On your way lord commander →"}
         </button>
       </div>
     </div>

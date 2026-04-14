@@ -14,9 +14,26 @@ const userSchema = new mongoose.Schema({
   skills: [{ type: String }],
   improveSkills: { type: String },
   about: { type: String },
+
+  // Gamification & progress
   streak: { type: Number, default: 0 },
-  riskLevel: { type: String, default: 'Low' },
-  checkpointScore: { type: Number, default: 0 }
+  lastStudyDate: { type: Date },
+  riskLevel: { type: String, enum: ['Low', 'Moderate', 'High'], default: 'Low' },
+  checkpointScore: { type: Number, default: 0 },
+
+  // Courses & badges
+  enrolledCourses: [{ type: String }],
+  badges: [{
+    icon: String,
+    name: String,
+    desc: String,
+    earnedAt: { type: Date, default: Date.now },
+  }],
+
+  // Roll / branch (used for display)
+  roll: { type: String },
+  branch: { type: String },
+  sem: { type: String },
 }, { timestamps: true });
 
 // Hash password before saving
