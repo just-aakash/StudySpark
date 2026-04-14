@@ -1,16 +1,114 @@
-# React + Vite
+# StudySpark
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+StudySpark is a comprehensive learning and education platform featuring user authentication, course management, dynamic learning roadmaps, and a user dashboard to track progress and checkpoints. 
 
-Currently, two official plugins are available:
+## Table of Contents
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Running the Application](#running-the-application)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
+- **User Authentication:** Secure signup, login, and password recovery using JWT and bcrypt.
+- **Interactive Dashboard:** Track learning progress, access active courses, and view upcoming updates with a built-in calendar.
+- **Course Management:** Browse, select, and enroll in various courses structured to enhance learning.
+- **Learning Roadmaps:** Guided learning paths for different subjects or skills.
+- **Checkpoints & Milestones:** Set and track learning milestones effectively.
+- **Responsive & Modern Design:** A beautifully crafted, fully responsive UI built with Tailwind CSS and Framer Motion for a seamless experience across desktop and mobile devices.
 
-## React Compiler
+## Tech Stack
+### Frontend
+- **React.js (v19)** - Core library for building the UI
+- **Vite** - Lightning fast build tool and frontend development server
+- **Tailwind CSS** - Utility-first CSS framework for rapid styling
+- **Framer Motion** - Production-ready animation library for React
+- **React Router DOM** - Declarative routing for React web applications
+- **Axios** - Promise-based HTTP client for the browser and node.js
+- **React Calendar** & **Sonner** - For calendar integration and toast notifications
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Backend
+- **Node.js** - JavaScript runtime environment
+- **Express.js** - Fast, unopinionated, minimalist web framework for Node.js
+- **MongoDB & Mongoose** - NoSQL database and object modeling tool for MongoDB
+- **JSON Web Tokens (JWT)** - For secure, stateless user authentication
+- **Bcrypt.js** - For secure password hashing
 
-## Expanding the ESLint configuration
+## Project Structure
+```text
+StudySpark/
+├── backend/
+│   ├── config/          # Database connection and environment configurations
+│   ├── controllers/     # Route logic handling
+│   ├── middlewares/     # Custom middlewares (e.g., auth verifications)
+│   ├── models/          # Mongoose schemas (e.g., User)
+│   ├── routes/          # Express route definitions (auth, roadmaps, checkpoints)
+│   ├── package.json     # Backend dependencies
+│   └── server.js        # Main entry point for the backend
+└── frontend/
+    ├── public/          # Static assets
+    ├── src/
+    │   ├── assets/      # Images, icons, etc.
+    │   ├── components/  # Reusable React components (e.g., Modal)
+    │   ├── pages/       # High-level views (Home, Login, Register, Dashboard, etc.)
+    │   ├── services/    # API integration calls (Axios wrappers)
+    │   ├── styles/      # Global CSS files
+    │   ├── App.jsx      # Main application router
+    │   └── main.jsx     # Frontend entry point
+    ├── package.json     # Frontend dependencies
+    ├── postcss.config.js# PostCSS settings
+    ├── tailwind.config.js # Tailwind settings
+    └── vite.config.js   # Vite settings
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Prerequisites
+Ensure that the following tools are installed on your local machine:
+- [Node.js](https://nodejs.org/en/) (v18 or higher recommended)
+- [MongoDB](https://www.mongodb.com/) (Local installation or MongoDB Atlas cluster)
+- Git
+
+## Installation
+1. **Clone the repository:**
+   ```bash
+   git clone <repository_url>
+   cd StudySpark
+   ```
+
+2. **Install Backend Dependencies:**
+   ```bash
+   cd backend
+   npm install
+   ```
+
+3. **Install Frontend Dependencies:**
+   ```bash
+   cd ../frontend
+   npm install
+   ```
+
+## Environment Variables
+Create a `.env` file in the `backend/` directory and configure the appropriate keys based on your setup. A typical `.env` might look like:
+```env
+PORT=5000
+MONGODB_URI=<your_mongodb_connection_string>
+JWT_SECRET=<your_secure_jwt_secret_key>
+```
+
+## Running the Application
+### Start the Backend Server (Development mode)
+Open a new terminal and run:
+```bash
+cd backend
+npm run dev
+# The backend API should now be running on http://localhost:5000
+```
+
+### Start the Frontend Application
+Open another terminal and run:
+```bash
+cd frontend
+npm run dev
+# The frontend app will be available at http://localhost:5173
+```
