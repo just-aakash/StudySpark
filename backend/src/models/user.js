@@ -15,12 +15,10 @@ const userSchema = new mongoose.Schema({
   skills: [{ type: String }],
   improveSkills: { type: String },
   about: { type: String },
+
+  // Gamification & progress
   streak: { type: Number, default: 0 },
-  riskLevel: { type: String, default: 'Low' },
-  checkpointScore: { type: Number, default: 0 },
-  isVerified: { type: Boolean, default: false },
-  resetPasswordToken: String,
-  resetPasswordExpire: Date
+
 }, { timestamps: true });
 
 // Hash password before saving
