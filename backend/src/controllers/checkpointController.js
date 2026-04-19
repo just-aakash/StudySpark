@@ -102,7 +102,7 @@ export const submitCheckpoint = async (req, res) => {
 
     // Update user's overall checkpointScore (running average) and riskLevel
     const allSessions = await Checkpoint.find({ userId: req.user._id });
-    const avgScore = allSessions.length > 0 
+    const avgScore = allSessions.length > 0
       ? Math.round(allSessions.reduce((a, s) => a + s.score, 0) / allSessions.length)
       : pct;
     const riskLevel = avgScore >= 70 ? 'Low' : avgScore >= 50 ? 'Moderate' : 'High';

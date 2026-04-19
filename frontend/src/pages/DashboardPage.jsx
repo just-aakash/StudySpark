@@ -102,6 +102,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   const [testSubject, setTestSubject] = useState("DSA");
   const [testState, setTestState] = useState({ started: false, q: 0, answers: [], score: null, correct: 0, total: 0, submitting: false, feedback: null });
   const [testLoading, setTestLoading] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
   // ── Settings State ────────────────────────────────────────────
   const [settings, setSettings] = useState({
     "Checkpoint Reminders": true,

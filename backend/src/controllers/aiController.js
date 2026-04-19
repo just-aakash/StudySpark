@@ -2,6 +2,8 @@ import { generateText, generateChat } from '../services/geminiService.js';
 import User from '../models/user.js';
 import Roadmap from '../models/roadmap.js';
 import Checkpoint from '../models/checkpoint.js';
+import AICache from '../models/AICache.js';
+import crypto from 'crypto';
 
 // ──────────────────────────────────────────────────────────────
 // @desc   Generate a personalized AI study advice/summary
@@ -11,6 +13,24 @@ import Checkpoint from '../models/checkpoint.js';
 export const getStudyAdvice = async (req, res) => {
   try {
     const userId = req.user._id;
+    const today = new Date().toISOString().split('T')[0];
+    const cacheKey = `advice_${userId}_${today}`;
+
+    // 1. Check Cache First
+    const cached = await AICache.findOne({ cacheKey });
+    if (cached) {
+      // Fetch stats again for the UI even if advice is cached
+      const [user, roadmap] = await Promise.all([
+        User.findById(userId).select('fname streak riskLevel'),
+        Roadmap.findOne({ userId }),
+      ]);
+      const weakSubjects = roadmap?.progress?.filter(p => p.pct < 60).map(p => p.subject) || [];
+      return res.json({ 
+        advice: cached.response, 
+        stats: { streak: user?.streak || 0, weakSubjects },
+        fromCache: true 
+      });
+    }
 
     const [user, roadmap, recentCheckpoints] = await Promise.all([
       User.findById(userId).select('fname streak riskLevel enrolledCourses checkpointScore'),
@@ -43,7 +63,25 @@ If they have weak subjects, gently suggest focusing on them today.
 Keep the tone like a friendly mentor, not a textbook.
 `.trim();
 
-    const advice = await generateText(prompt, { temperature: 0.85 });
+    let advice;
+    try {
+      advice = await generateText(prompt, { temperature: 0.85 });
+      
+      // 2. Save to Cache
+      await AICache.create({
+        cacheKey,
+        response: advice.trim(),
+        category: 'advice',
+        userId
+      });
+    } catch (err) {
+      if (err.message === 'AI_QUOTA_EXCEEDED') {
+        console.warn('[AI Advice] Quota exceeded, using fallback');
+        advice = `Hey ${user.fname}! You're doing great with a ${user.streak}-day streak. Keep pushing forward! Even without AI advice today, remember that consistency is key. Focus on your ${weakSubjects[0] || 'core subjects'} and stay sharp!`;
+      } else {
+        throw err;
+      }
+    }
 
     res.json({ advice: advice.trim(), stats: { avgScore, streak: user.streak, weakSubjects } });
   } catch (error) {
@@ -65,6 +103,15 @@ export const explainTopic = async (req, res) => {
       return res.status(400).json({ message: 'topic is required.' });
     }
 
+    const cleanTopic = topic.trim().toLowerCase();
+    const cacheKey = `explain_${cleanTopic}_${(subject || 'general').toLowerCase()}`;
+
+    // 1. Check Cache
+    const cached = await AICache.findOne({ cacheKey });
+    if (cached) {
+      return res.json({ topic, subject, explanation: cached.response, fromCache: true });
+    }
+
     const prompt = `
 You are an expert CS tutor. Explain "${topic}" ${subject ? `in the context of ${subject}` : ''} 
 in a clear, simple way for a university student.
@@ -78,7 +125,23 @@ Structure your response as:
 Be concise, accurate, and student-friendly.
 `.trim();
 
-    const explanation = await generateText(prompt, { temperature: 0.6 });
+    let explanation;
+    try {
+      explanation = await generateText(prompt, { temperature: 0.6 });
+      
+      // 2. Save to Cache
+      await AICache.create({
+        cacheKey,
+        response: explanation.trim(),
+        category: 'explanation'
+      });
+    } catch (err) {
+      if (err.message === 'AI_QUOTA_EXCEEDED') {
+        explanation = `I'm currently resting my AI brain! But basically, ${topic} is a core concept in ${subject || 'CS'}. It deals with organizing and processing information efficiently. For a detailed breakdown, please try again in a little while!`;
+      } else {
+        throw err;
+      }
+    }
 
     res.json({ topic, subject, explanation: explanation.trim() });
   } catch (error) {
@@ -95,6 +158,14 @@ Be concise, accurate, and student-friendly.
 export const getStudyPlan = async (req, res) => {
   try {
     const userId = req.user._id;
+    const today = new Date().toISOString().split('T')[0];
+    const cacheKey = `plan_${userId}_${today}`;
+
+    // 1. Check Cache
+    const cached = await AICache.findOne({ cacheKey });
+    if (cached) {
+      return res.json({ ...JSON.parse(cached.response), fromCache: true });
+    }
 
     const [user, roadmap] = await Promise.all([
       User.findById(userId).select('fname enrolledCourses streak riskLevel'),
@@ -120,29 +191,45 @@ Return a JSON object (no markdown) with this structure:
 {
   "plan": [
     { "day": "Monday", "tasks": ["Task 1 (subject, 1h)", "Task 2 (subject, 30min)"] },
-    { "day": "Tuesday", "tasks": [...] },
     ...all 7 days...
   ],
-  "focus_tip": "One most important advice for this week in 1-2 sentences."
+  "focus_tip": "Advice for this week."
 }
-
-Rules:
-- Each day should have 2–3 tasks.
-- Include subject name and estimated time in each task.
-- Prioritize weak subjects.
-- Include at least 1 checkpoint practice session in the week.
-- Make it realistic, not overwhelming.
 `.trim();
 
-    const planData = await generateText(prompt, { temperature: 0.5 });
-
-    // Try to parse JSON, fallback to raw text
+    let planData;
     let plan;
+
     try {
+      planData = await generateText(prompt, { temperature: 0.5 });
       const cleaned = planData.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
       plan = JSON.parse(cleaned);
-    } catch {
-      plan = { raw: planData.trim() };
+
+      // 2. Save to Cache
+      await AICache.create({
+        cacheKey,
+        response: JSON.stringify(plan),
+        category: 'plan',
+        userId
+      });
+    } catch (err) {
+      if (err.message === 'AI_QUOTA_EXCEEDED') {
+        console.warn('[AI Study Plan] Quota exceeded, using static fallback');
+        plan = {
+          plan: [
+            { day: "Monday", tasks: ["Review core concepts", "Practice 1 coding problem"] },
+            { day: "Tuesday", tasks: ["Focus on weak topics", "Read documentation"] },
+            { day: "Wednesday", tasks: ["Take a mock checkpoint", "Rest & Review"] },
+            { day: "Thursday", tasks: ["Study DBMS/OS basics", "Review logic"] },
+            { day: "Friday", tasks: ["Apply theory to code", "Group study session"] },
+            { day: "Saturday", tasks: ["Weekly revision", "Solve previous errors"] },
+            { day: "Sunday", tasks: ["Weekly Wrap-up", "Prepare for next week"] }
+          ],
+          focus_tip: "Consistency is better than intensity. Keep your streak alive!"
+        };
+      } else {
+        throw err;
+      }
     }
 
     res.json(plan);
