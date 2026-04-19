@@ -67,7 +67,7 @@ export const loginUser = async (req, res) => {
 // @desc    Mock password reset functionality
 // @route   POST /api/auth/forgot-password
 // @access  Public
- const forgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
 
