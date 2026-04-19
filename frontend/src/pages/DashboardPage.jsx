@@ -8,6 +8,7 @@ import roadmapService from "../services/roadmapService";
 import aiService from "../services/aiService";
 import logo from "../assets/logo.png";
 import Modal from "../components/Modal";
+import AIChatBot from "../components/AIChatBot";
 
 // ── Default/fallback data shown while real data loads ──────────
 const DEFAULT_ROADMAP_PROGRESS = [
@@ -51,7 +52,7 @@ function mapCpScores(history) {
   if (!history || !history.length) return [];
   return history.map(h => ({ week: h.week, s: h.score }));
 }
- 
+
 function Countdown({ days }) {
   const hours = (days * 24) % 24;
   return (
@@ -65,7 +66,7 @@ function Countdown({ days }) {
     </div>
   );
 }
- 
+
 function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   const navigate = useNavigate();
   const [active, setActive] = useState("dashboard");
@@ -96,7 +97,23 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   const [testSubject, setTestSubject] = useState("DSA");
   const [testState, setTestState] = useState({ started: false, q: 0, answers: [], score: null, correct: 0, total: 0, submitting: false, feedback: null });
   const [testLoading, setTestLoading] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  // ── Settings State ────────────────────────────────────────────
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem("studySparkSettings");
+    return saved ? JSON.parse(saved) : {
+      "Checkpoint Reminders": true,
+      "Daily Study Alerts": true,
+      "Streak Notifications": true,
+      "Weak Topic Alerts": true
+    };
+  });
+
+  const toggleSetting = (name) => {
+    const newSettings = { ...settings, [name]: !settings[name] };
+    setSettings(newSettings);
+    localStorage.setItem("studySparkSettings", JSON.stringify(newSettings));
+  };
+
 
   // ── Leaderboard state ──────────────────────────────────────
   const [leaderboard, setLeaderboard] = useState([]);
@@ -340,10 +357,10 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
       setTasks(prev => prev.map(t => t.id === taskId ? { ...t, done: !t.done } : t));
     }
   };
- 
+
   return (
     <div className="dash-wrap">
- 
+
       {/* SIDEBAR */}
       <aside className="sidebar" style={{ "--sw": sbOpen ? "240px" : "62px" }}>
         <div className="sb-top" onClick={() => setSbOpen(s => !s)}>
@@ -370,7 +387,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
           </button>
         </div>
       </aside>
- 
+
       {/* MAIN */}
       <div className="dash-main">
         {/* NAVBAR */}
@@ -410,10 +427,10 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
             )}
           </div>
         </nav>
- 
+
         {/* CONTENT */}
         <div className="dash-content">
- 
+
           {/* ── DASHBOARD HOME ── */}
           {active === "dashboard" && (
             <div>
@@ -424,13 +441,13 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                 </div>
                 <div style={{ fontSize: 12, color: "var(--muted)" }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", month: "long", day: "numeric" })}</div>
               </div>
- 
+
               {/* AI ADVICE CARD */}
               {(aiAdvice || aiLoading) && (
                 <div style={{ background: "linear-gradient(135deg, rgba(0,212,170,0.08), rgba(99,102,241,0.08))", border: "1px solid rgba(0,212,170,0.25)", borderRadius: 16, padding: "18px 22px", marginBottom: 20, display: "flex", gap: 14, alignItems: "flex-start" }}>
                   <div style={{ fontSize: 28, flexShrink: 0 }}>🤖</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>AI Mentor · Gemini</div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>StudySpark AI</div>
                     {aiLoading ? (
                       <div style={{ fontSize: 13, color: "var(--muted)", fontStyle: "italic" }}>Generating personalized advice...</div>
                     ) : (
@@ -455,7 +472,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   </div>
                 ))}
               </div>
- 
+
               <div className="g2">
                 {/* ROADMAP PROGRESS */}
                 <div className="wg">
@@ -469,7 +486,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                     </div>
                   ))}
                 </div>
- 
+
                 {/* CHECKPOINT SCORES */}
                 <div className="wg">
                   <div className="wg-title">Checkpoint Scores</div>
@@ -482,7 +499,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   ))}
                 </div>
               </div>
- 
+
               <div className="g3">
                 {/* TODAY'S TASKS */}
                 <div className="wg" style={{ gridColumn: "span 2" }}>
@@ -505,7 +522,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                     </div>
                   ))}
                 </div>
- 
+
                 {/* RISK LEVEL */}
                 <div className="wg">
                   <div className="wg-title">⚠️ Risk Level</div>
@@ -517,7 +534,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   </div>
                 </div>
               </div>
- 
+
               <div className="g2">
                 {/* WEAK TOPIC HEATMAP */}
                 <div className="wg">
@@ -532,15 +549,15 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                     )) : <div style={{ color: "var(--muted)", fontSize: 12 }}>No weak topics identified.</div>}
                   </div>
                 </div>
- 
+
                 {/* CONSISTENCY TRACKER */}
                 <div className="wg">
                   <div className="wg-title">🔗 Consistency Tracker</div>
                   <div style={{ marginBottom: 12 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>Current Month - March 2025</div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 12 }}>
-                      {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d,i) => <div key={i} style={{ fontSize: 8, textAlign: "center", color: "var(--muted)", fontWeight: 700, paddingBottom: 4 }}>{d}</div>)}
-                      {Array.from({length: 35}).map((_, i) => {
+                      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => <div key={i} style={{ fontSize: 8, textAlign: "center", color: "var(--muted)", fontWeight: 700, paddingBottom: 4 }}>{d}</div>)}
+                      {Array.from({ length: 35 }).map((_, i) => {
                         // Show last 35 days (5 weeks)
                         const d = new Date();
                         d.setDate(d.getDate() - (34 - i));
@@ -549,7 +566,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                         const intensity = Math.min(activity, 5);
                         const colors = ["var(--surface3)", "rgba(0,212,170,0.15)", "rgba(0,212,170,0.3)", "rgba(0,212,170,0.5)", "rgba(0,212,170,0.75)", "var(--accent)"];
                         return (
-                          <div key={i} title={`${dateStr}: ${activity} activities`} 
+                          <div key={i} title={`${dateStr}: ${activity} activities`}
                             style={{ aspectRatio: "1", background: colors[intensity], border: "1px solid var(--border)", borderRadius: 3 }}>
                           </div>
                         );
@@ -565,23 +582,23 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   </div>
                 </div>
               </div>
- 
+
               <div className="g2">
                 {/* PERFORMANCE TREND */}
                 <div className="wg">
                   <div className="wg-title">📈 Performance Trend</div>
                   <svg viewBox="0 0 300 90" style={{ width: "100%", overflow: "visible" }}>
                     <defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--accent)" stopOpacity="0.25" /><stop offset="100%" stopColor="var(--accent)" stopOpacity="0" /></linearGradient></defs>
-                    {[30,60].map(y => <line key={y} x1="0" y1={90-y} x2="300" y2={90-y} stroke="var(--border)" strokeWidth="1" />)}
-                    <polygon fill="url(#tg)" points={cpScores.length ? [...cpScores.map((c,i) => `${i*44},${90-c.s*0.8}`), `${(cpScores.length-1)*44},90`, "0,90"].join(" ") : ""} />
-                    <polyline fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={cpScores.map((c,i) => `${i*44},${90-c.s*0.8}`).join(" ")} />
-                    {cpScores.map((c,i) => <circle key={i} cx={i*44} cy={90-c.s*0.8} r="4" fill="var(--accent)" />)}
+                    {[30, 60].map(y => <line key={y} x1="0" y1={90 - y} x2="300" y2={90 - y} stroke="var(--border)" strokeWidth="1" />)}
+                    <polygon fill="url(#tg)" points={cpScores.length ? [...cpScores.map((c, i) => `${i * 44},${90 - c.s * 0.8}`), `${(cpScores.length - 1) * 44},90`, "0,90"].join(" ") : ""} />
+                    <polyline fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={cpScores.map((c, i) => `${i * 44},${90 - c.s * 0.8}`).join(" ")} />
+                    {cpScores.map((c, i) => <circle key={i} cx={i * 44} cy={90 - c.s * 0.8} r="4" fill="var(--accent)" />)}
                   </svg>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--muted)", marginTop: 4 }}>
                     {cpScores.map(c => <span key={c._id || c.week}>{c.week}</span>)}
                   </div>
                 </div>
- 
+
                 {/* ROUTINE HISTORY */}
                 <div className="wg">
                   <div className="wg-title">🔄 Routine Change History</div>
@@ -595,7 +612,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   )) : <div style={{ fontSize: 13, color: "var(--muted)" }}>No checkpoint history yet.</div>}
                 </div>
               </div>
- 
+
               {/* UPCOMING CHECKPOINT */}
               <div className="g2">
                 <div className="wg">
@@ -614,7 +631,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                     <div style={{ fontSize: 13, color: "var(--muted)" }}>No upcoming checkpoints. Start a test below!</div>
                   )}
                 </div>
- 
+
                 {/* BADGES */}
                 <div className="wg">
                   <div className="wg-title">🏆 Badges Earned</div>
@@ -630,7 +647,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               </div>
             </div>
           )}
- 
+
           {/* ── ROADMAP PAGE ── */}
           {active === "roadmap" && (
             <div>
@@ -639,10 +656,10 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   <div className="page-h">Study Roadmap</div>
                   <div className="page-sub">Your personalized learning path — zigzag through each milestone.</div>
                 </div>
-                <button 
-                  className="btn-primary" 
-                  style={{ padding: "10px 16px", fontSize: 13, background: "linear-gradient(135deg, var(--accent) 0%, var(--accent3) 100%)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 8 }} 
-                  onClick={handleGenerateRoadmap} 
+                <button
+                  className="btn-primary"
+                  style={{ padding: "10px 16px", fontSize: 13, background: "linear-gradient(135deg, var(--accent) 0%, var(--accent3) 100%)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 8 }}
+                  onClick={handleGenerateRoadmap}
                   disabled={generatingRoadmap}
                 >
                   {generatingRoadmap ? "⏳ Generating..." : "✨ Generate AI Roadmap"}
@@ -676,13 +693,13 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               </div>
             </div>
           )}
- 
+
           {/* ── CHECKPOINT TESTS ── */}
           {active === "checkpoint" && (
             <div>
               <div className="page-h">Checkpoint Tests</div>
               <div className="page-sub">AI-generated conceptual questions. Your score shapes your roadmap.</div>
- 
+
               {!testState.started ? (
                 <>
                   <div className="wg" style={{ marginBottom: 16 }}>
@@ -700,7 +717,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                     </button>
                   </div>
                   <div className="page-h" style={{ fontSize: 14, marginBottom: 12 }}>Past Results</div>
-                  {cpScores.length > 0 ? cpScores.map((c,i) => (
+                  {cpScores.length > 0 ? cpScores.map((c, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10, padding: "8px 14px", marginBottom: 8 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: "var(--muted)", width: 24 }}>{c.week}</span>
                       <div className="bar-track" style={{ flex: 1 }}><div className="bar-fill" style={{ width: `${c.s}%`, background: c.s >= 70 ? "var(--green)" : c.s >= 50 ? "var(--yellow)" : "var(--red)" }} /></div>
@@ -806,7 +823,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               )}
             </div>
           )}
- 
+
           {/* ── ANALYTICS ── */}
           {active === "analytics" && (
             <div>
@@ -814,8 +831,8 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               <div className="page-sub">Deep dive into your scores, study hours, and consistency trends.</div>
               <div className="g3" style={{ marginBottom: 24 }}>
                 {[
-                  { l: "Avg Score", v: analyticsData.length ? `${Math.round(analyticsData.reduce((a,b) => a+b.score,0)/analyticsData.length)}%` : "N/A", c: "var(--accent)" },
-                  { l: "Total Sessions", v: analyticsData.reduce((a,b) => a+(b.sessions||0),0), c: "var(--accent3)" },
+                  { l: "Avg Score", v: analyticsData.length ? `${Math.round(analyticsData.reduce((a, b) => a + b.score, 0) / analyticsData.length)}%` : "N/A", c: "var(--accent)" },
+                  { l: "Total Sessions", v: analyticsData.reduce((a, b) => a + (b.sessions || 0), 0), c: "var(--accent3)" },
                   { l: "Streak", v: `${streak} days`, c: "var(--accent4)" },
                 ].map(s => (
                   <div key={s.l} className="wg">
@@ -827,16 +844,16 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               <div className="wg" style={{ marginBottom: 20 }}>
                 <div className="wg-title">📈 Weekly Score Trend</div>
                 <svg viewBox="0 0 500 120" style={{ width: "100%" }}>
-                  {[30,60,90].map(y => (
-                    <g key={y}><line x1="40" y1={120-y} x2="480" y2={120-y} stroke="var(--border)" strokeWidth="1" /><text x="32" y={124-y} fill="var(--muted)" fontSize="10" textAnchor="end">{y}</text></g>
+                  {[30, 60, 90].map(y => (
+                    <g key={y}><line x1="40" y1={120 - y} x2="480" y2={120 - y} stroke="var(--border)" strokeWidth="1" /><text x="32" y={124 - y} fill="var(--muted)" fontSize="10" textAnchor="end">{y}</text></g>
                   ))}
                   <polyline fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
-                    points={analyticsData.map((d,i) => `${60+i*58},${120-d.score}`).join(" ")} />
-                  {analyticsData.map((d,i) => (
+                    points={analyticsData.map((d, i) => `${60 + i * 58},${120 - d.score}`).join(" ")} />
+                  {analyticsData.map((d, i) => (
                     <g key={i}>
-                      <circle cx={60+i*58} cy={120-d.score} r="5" fill={d.score >= 70 ? "var(--green)" : d.score >= 50 ? "var(--yellow)" : "var(--red)"} />
-                      <text x={60+i*58} y={120-d.score-10} fill="var(--text)" fontSize="11" textAnchor="middle" fontWeight="700">{d.score}</text>
-                      <text x={60+i*58} y="118" fill="var(--muted)" fontSize="10" textAnchor="middle">{d.week}</text>
+                      <circle cx={60 + i * 58} cy={120 - d.score} r="5" fill={d.score >= 70 ? "var(--green)" : d.score >= 50 ? "var(--yellow)" : "var(--red)"} />
+                      <text x={60 + i * 58} y={120 - d.score - 10} fill="var(--text)" fontSize="11" textAnchor="middle" fontWeight="700">{d.score}</text>
+                      <text x={60 + i * 58} y="118" fill="var(--muted)" fontSize="10" textAnchor="middle">{d.week}</text>
                     </g>
                   ))}
                 </svg>
@@ -854,7 +871,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               </div>
             </div>
           )}
- 
+
           {/* ── COURSES ── */}
           {active === "courses" && (
             <div>
@@ -869,7 +886,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                       <div style={{ fontSize: 36, marginBottom: 12 }}>{icons[c.topic] || "📚"}</div>
                       <div style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{c.topic}</div>
                       <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 10 }}>{c.pct}% complete</div>
-                      <button className="btn-primary" style={{ marginTop: 14, width: "100%", padding: "9px", fontSize: 13 }}>Continue →</button>
+                      <button className="btn-primary" style={{ marginTop: 14, width: "100%", padding: "9px", fontSize: 13 }} onClick={() => setActive("roadmap")}>Continue →</button>
                     </div>
                   );
                 }) : <div style={{ color: "var(--muted)", fontSize: 14 }}>No courses enrolled. Generate a roadmap!</div>}
@@ -887,13 +904,13 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   <div key={c.title} className="wg">
                     <div style={{ fontSize: 36, marginBottom: 10 }}>{c.icon}</div>
                     <div style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, marginBottom: 12 }}>{c.title}</div>
-                    <button className="btn-outline" style={{ width: "100%", padding: "9px", fontSize: 13 }}>+ Enroll</button>
+                    <button className="btn-outline" style={{ width: "100%", padding: "9px", fontSize: 13 }} onClick={() => alert("Successfully enrolled in " + c.title + "!")}>+ Enroll</button>
                   </div>
                 ))}
               </div>
             </div>
           )}
- 
+
           {/* ── LEADERBOARD ── */}
           {active === "leaderboard" && (
             <div>
@@ -941,7 +958,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                     </div>
                     {leaderboard.map((u, i) => (
                       <div key={u.name + i} style={{ padding: "14px 20px", borderBottom: "1px solid var(--border)", display: "grid", gridTemplateColumns: "40px 1fr 80px 80px 70px", alignItems: "center", background: u.isMe ? "rgba(0,212,170,0.05)" : "transparent", transition: "background 0.2s" }}>
-                        <span style={{ fontWeight: 900, color: i < 3 ? ["#FFD700","#C0C0C0","#CD7F32"][i] : "var(--muted)", fontSize: 15 }}>{i + 1}</span>
+                        <span style={{ fontWeight: 900, color: i < 3 ? ["#FFD700", "#C0C0C0", "#CD7F32"][i] : "var(--muted)", fontSize: 15 }}>{i + 1}</span>
                         <div>
                           <div style={{ fontWeight: 700, fontSize: 14 }}>{u.name} {u.isMe && <span style={{ fontSize: 10, background: "var(--accent)", color: "#000", borderRadius: 4, padding: "1px 6px", fontWeight: 800, marginLeft: 6 }}>YOU</span>}</div>
                           <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 1 }}>{u.branch} · {u.subjects || "—"}</div>
@@ -979,7 +996,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   { name: "Jayant Kumar", role: "Database", av: "JK", col: "#a855f7" },
                 ].map(m => (
                   <div key={m.name} className="wg" style={{ textAlign: "center" }}>
-                    <div style={{ width: 56, height: 56, borderRadius: "50%", background: m.col+"22", color: m.col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, margin: "0 auto 12px", fontFamily: "var(--display)" }}>{m.av}</div>
+                    <div style={{ width: 56, height: 56, borderRadius: "50%", background: m.col + "22", color: m.col, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, margin: "0 auto 12px", fontFamily: "var(--display)" }}>{m.av}</div>
                     <div style={{ fontFamily: "var(--display)", fontSize: 14, fontWeight: 700 }}>{m.name}</div>
                     <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 3 }}>{m.role}</div>
                     <div style={{ fontSize: 11, color: m.col, fontWeight: 700, marginTop: 4 }}>{m.roll}</div>
@@ -988,7 +1005,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               </div>
             </div>
           )}
- 
+
           {/* ── CONTACT ── */}
           {active === "contact" && (
             <div>
@@ -996,7 +1013,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
                 <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: 28 }}>
                   <h3 style={{ fontFamily: "var(--display)", fontSize: 17, fontWeight: 700, marginBottom: 20 }}>Send a Message</h3>
-                  {[["Name","text","Your name"],["Email","email","your@email.com"],["Subject","text","How can we help?"]].map(([l,t,ph]) => (
+                  {[["Name", "text", "Your name"], ["Email", "email", "your@email.com"], ["Subject", "text", "How can we help?"]].map(([l, t, ph]) => (
                     <div key={l} style={{ marginBottom: 14 }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{l}</div>
                       <input type={t} placeholder={ph} className="input-field" />
@@ -1006,10 +1023,10 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Message</div>
                     <textarea className="input-field" rows={5} placeholder="Your message..." style={{ resize: "vertical" }} />
                   </div>
-                  <button className="btn-primary" style={{ width: "100%", padding: "12px", fontSize: 15 }}>Send Message →</button>
+                  <button className="btn-primary" style={{ width: "100%", padding: "12px", fontSize: 15 }} onClick={() => alert("Message sent successfully! We will get back to you soon.")}>Send Message →</button>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {[["📍","Address","GLA University, Mathura, UP 281406"],["📧","Email","studyspark@gla.ac.in"],["🎓","Team","StudySpark: AI Habit Forge"]].map(([ic,l,v]) => (
+                  {[["📍", "Address", "GLA University, Mathura, UP 281406"], ["📧", "Email", "studyspark@gla.ac.in"], ["🎓", "Team", "StudySpark: AI Habit Forge"]].map(([ic, l, v]) => (
                     <div key={l} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "16px 18px", display: "flex", gap: 14, alignItems: "center" }}>
                       <span style={{ fontSize: 22 }}>{ic}</span>
                       <div><div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>{l}</div><div style={{ fontSize: 14, fontWeight: 600, marginTop: 2 }}>{v}</div></div>
@@ -1021,7 +1038,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
           )}
         </div>
       </div>
- 
+
       {/* ══ MODALS ══ */}
 
       {/* Add Task Modal */}
@@ -1157,7 +1174,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
           <div style={{ marginBottom: 28 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 12 }}>Last 35 days</div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 3 }}>
-              {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(d => <div key={d} style={{ fontSize: 9, fontWeight: 700, textAlign: "center", color: "var(--muted)", paddingBottom: 5 }}>{d}</div>)}
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => <div key={d} style={{ fontSize: 9, fontWeight: 700, textAlign: "center", color: "var(--muted)", paddingBottom: 5 }}>{d}</div>)}
               {Array.from({ length: 35 }).map((_, i) => {
                 const d = new Date(); d.setDate(d.getDate() - (34 - i));
                 const dateStr = d.toISOString().split("T")[0];
@@ -1261,8 +1278,8 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
             <div style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, marginBottom: 14 }}>🎨 Theme</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {["dark", "light"].map(t => (
-                <button key={t} onClick={() => { setTheme(t); document.documentElement.setAttribute("data-theme", t); }}
-                  style={{ padding: 14, background: theme === t ? "rgba(0,212,170,0.1)" : "var(--surface2)", border: `2px solid ${theme === t ? "var(--accent)" : "var(--border)"}`, borderRadius: 12, color: theme === t ? "var(--accent)" : "var(--text)", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "var(--font)" }}>
+                <button key={t} onClick={() => setTheme(t)}
+                  style={{ padding: 14, background: theme === t ? "rgba(0,212,170,0.1)" : "var(--surface2)", border: `2px solid ${theme === t ? "var(--accent)" : "var(--border)"}`, borderRadius: 12, color: theme === t ? "var(--accent)" : "var(--text)", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "var(--font)", transition: '0.2s' }}>
                   {t === "dark" ? "🌙 Dark" : "☀️ Light"}
                 </button>
               ))}
@@ -1273,13 +1290,15 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
             {["Checkpoint Reminders", "Daily Study Alerts", "Streak Notifications", "Weak Topic Alerts"].map(n => (
               <div key={n} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
                 <span style={{ fontSize: 14 }}>{n}</span>
-                <div style={{ width: 42, height: 22, borderRadius: 99, background: "var(--accent)", cursor: "pointer", position: "relative" }}>
-                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: "#000", position: "absolute", top: 3, right: 3 }} />
+                <div 
+                  onClick={() => toggleSetting(n)}
+                  style={{ width: 42, height: 22, borderRadius: 99, background: settings[n] ? "var(--accent)" : "var(--surface3)", cursor: "pointer", position: "relative", transition: "0.3s" }}>
+                  <div style={{ width: 16, height: 16, borderRadius: "50%", background: settings[n] ? "#000" : "var(--muted)", position: "absolute", top: 3, left: settings[n] ? 23 : 3, transition: "0.3s" }} />
                 </div>
               </div>
             ))}
           </div>
-          <button className="btn-primary" style={{ width: "100%", padding: 12, fontSize: 15, background: "var(--red)" }} onClick={() => navigate("/")}>🚪 Logout</button>
+          <button className="btn-primary" style={{ width: "100%", padding: 12, fontSize: 15, background: "var(--red)" }} onClick={() => { authService.logout(); navigate("/"); }}>🚪 Logout</button>
         </Modal>
       )}
 
@@ -1292,6 +1311,9 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
       {/* Inject spin animation for submitting state */}
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+
+      {/* Floating AI Chat Bot */}
+      <AIChatBot user={liveUser} />
     </div>
   );
 }
