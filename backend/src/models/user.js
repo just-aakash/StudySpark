@@ -14,6 +14,7 @@ const userSchema = new mongoose.Schema({
   skills: [{ type: String }],
   improveSkills: { type: String },
   about: { type: String },
+  profilePic: { type: String },
 
   // Gamification & progress
   streak: { type: Number, default: 0 },
@@ -34,6 +35,17 @@ const userSchema = new mongoose.Schema({
   roll: { type: String },
   branch: { type: String },
   sem: { type: String },
+
+  // User Settings (Theme, Notifications)
+  settings: {
+    theme: { type: String, default: 'dark', enum: ['dark', 'light'] },
+    notifications: {
+      "Checkpoint Reminders": { type: Boolean, default: true },
+      "Daily Study Alerts": { type: Boolean, default: true },
+      "Streak Notifications": { type: Boolean, default: true },
+      "Weak Topic Alerts": { type: Boolean, default: true }
+    }
+  }
 }, { timestamps: true });
 
 // Hash password before saving
