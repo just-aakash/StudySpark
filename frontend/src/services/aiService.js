@@ -24,11 +24,18 @@ const getLeaderboard = async () => {
   return response.data;
 };
 
+// Chat with AI
+const chatWithAI = async (messages) => {
+  const response = await api.post('/ai/chat', { messages });
+  return response.data;
+};
+
 const aiService = {
   getStudyAdvice,
   explainTopic,
   getStudyPlan,
   getLeaderboard,
+  chatWithAI,
 };
 
 export default aiService;

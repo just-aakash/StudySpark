@@ -1,4 +1,4 @@
-import { generateText } from '../services/geminiService.js';
+import { generateText, generateChat } from '../services/geminiService.js';
 import User from '../models/user.js';
 import Roadmap from '../models/roadmap.js';
 import Checkpoint from '../models/checkpoint.js';
@@ -149,5 +149,43 @@ Rules:
   } catch (error) {
     console.error('[AI Study Plan] Error:', error.message);
     res.status(500).json({ message: 'Could not generate study plan. Please try again.' });
+  }
+};
+
+// ──────────────────────────────────────────────────────────────
+// @desc   Interactive Chat with AI Tutor
+// @route  POST /api/ai/chat
+// @access Private
+// ──────────────────────────────────────────────────────────────
+export const chatWithAI = async (req, res) => {
+  try {
+    const { messages } = req.body;
+    const userId = req.user._id;
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ message: 'Messages array is required.' });
+    }
+
+    const user = await User.findById(userId).select('fname enrolledCourses');
+    
+    // Provide system context
+    const systemPromptMessage = {
+      role: 'user',
+      text: `[SYSTEM Context (Do not reply directly to this message)] You are StudySpark, a 24/7 AI tutor and mentor. You are talking to a student named ${user?.fname || 'Student'}. Their enrolled courses are ${(user?.enrolledCourses || []).join(', ') || 'general subjects'}. Be concise, helpful, friendly, and act as their mentor.`
+    };
+
+    const aiAcknowledgeMessage = {
+      role: 'model',
+      text: 'Understood. I am StudySpark, your AI tutor. How can I help?'
+    };
+
+    const fullHistory = [systemPromptMessage, aiAcknowledgeMessage, ...messages];
+    
+    const reply = await generateChat(fullHistory, { temperature: 0.7 });
+
+    res.json({ reply: reply.trim() });
+  } catch (error) {
+    console.error('[AI Chat] Error:', error.message);
+    res.status(500).json({ message: 'Could not get response from AI Chat.' });
   }
 };

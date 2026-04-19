@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -25,6 +25,13 @@ function App() {
   };
 
   const [courses, setCourses] = useState([]);
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+
+  // Trigger HTML theme updates automatically
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+  }, [theme]);
 
   return (
     <Routes>
@@ -32,7 +39,7 @@ function App() {
       <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
-      <Route path="/dashboard" element={<DashboardPage user={user} />} />
+      <Route path="/dashboard" element={<DashboardPage user={user} theme={theme} setTheme={setTheme} />} />
       <Route path="/courses" element={<CoursePage user={user} onCourseSelect={handleCourseSelect} />} />
     </Routes>
   );
