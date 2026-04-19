@@ -3,7 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 // Initialize the Gemini client once
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Use gemini-1.5-flash for speed + cost efficiency
+// Using gemini-2.5-flash as per user preference (caching will handle quota)
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 /**
@@ -19,12 +19,24 @@ export async function generateText(prompt, options = {}) {
     ...options,
   };
 
-  const result = await model.generateContent({
-    contents: [{ role: 'user', parts: [{ text: prompt }] }],
-    generationConfig: config,
-  });
+  try {
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: config,
+    });
 
-  return result.response.text();
+    if (!result.response) {
+      throw new Error('No response from Gemini');
+    }
+
+    return result.response.text();
+  } catch (error) {
+    // Check for quota/rate limit errors
+    if (error.message?.includes('429') || error.message?.includes('quota')) {
+      throw new Error('AI_QUOTA_EXCEEDED');
+    }
+    throw error;
+  }
 }
 
 /**
@@ -80,7 +92,7 @@ export async function generateChat(messages, options = {}) {
     if (parts.length === 0) {
       parts.push({ text: " " });
     }
-    
+
     return {
       role: msg.role === 'ai' || msg.role === 'assistant' || msg.role === 'model' ? 'model' : 'user',
       parts
@@ -97,12 +109,23 @@ export async function generateChat(messages, options = {}) {
     }
   });
 
-  const result = await model.generateContent({
-    contents,
-    generationConfig: config,
-  });
+  try {
+    const result = await model.generateContent({
+      contents,
+      generationConfig: config,
+    });
 
-  return result.response.text();
+    if (!result.response) {
+      throw new Error('No response from Gemini');
+    }
+
+    return result.response.text();
+  } catch (error) {
+    if (error.message?.includes('429') || error.message?.includes('quota')) {
+      throw new Error('AI_QUOTA_EXCEEDED');
+    }
+    throw error;
+  }
 }
 
 export default { generateText, generateJSON, generateChat };

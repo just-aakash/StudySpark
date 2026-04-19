@@ -29,7 +29,7 @@ export const updateProfile = async (req, res) => {
     const allowed = [
       'fname', 'lname', 'phone', 'dob', 'education',
       'year', 'interests', 'skills', 'improveSkills', 'about',
-      'roll', 'branch', 'sem',
+      'roll', 'branch', 'sem', 'settings', 'profilePic', 'enrolledCourses'
     ];
     const updates = {};
     allowed.forEach(field => {
@@ -66,18 +66,15 @@ export const getAnalytics = async (req, res) => {
     // Reverse so oldest→newest for chart
     const checkpointHistory = sessions.reverse();
 
-    // Weekly data — group by week label
-    const weeklyMap = {};
-    checkpointHistory.forEach(s => {
-      if (!weeklyMap[s.week]) weeklyMap[s.week] = { scores: [], sessions: 0 };
-      weeklyMap[s.week].scores.push(s.score);
-      weeklyMap[s.week].sessions += 1;
+    const analyticsData = checkpointHistory.map(s => {
+      const d = new Date(s.createdAt);
+      const label = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
+      return {
+        label,
+        score: s.score,
+        subject: s.subject,
+      };
     });
-    const analyticsData = Object.entries(weeklyMap).map(([week, d]) => ({
-      week,
-      score: Math.round(d.scores.reduce((a, b) => a + b, 0) / d.scores.length),
-      sessions: d.sessions,
-    }));
 
     // Total tasks completed (today & all time)
     const today = new Date();
@@ -120,12 +117,12 @@ export const getAnalytics = async (req, res) => {
     // Weak topics: subjects with pct < 60
     const weakTopics = roadmap
       ? roadmap.progress
-          .filter(p => p.pct < 60)
-          .map(p => ({
-            t: p.subject,
-            s: p.pct,
-            lvl: p.pct < 40 ? 'critical' : p.pct < 55 ? 'danger' : 'warn',
-          }))
+        .filter(p => p.pct < 60)
+        .map(p => ({
+          t: p.subject,
+          s: p.pct,
+          lvl: p.pct < 40 ? 'critical' : p.pct < 55 ? 'danger' : 'warn',
+        }))
       : [];
 
     // Summary stats
@@ -133,7 +130,8 @@ export const getAnalytics = async (req, res) => {
       ? Math.round(checkpointHistory.reduce((a, s) => a + s.score, 0) / checkpointHistory.length)
       : 0;
 
-    const user = await User.findById(userId).select('streak riskLevel badges enrolledCourses fname lname email roll branch sem');
+    // Fetch user without password to cleanly expose all dynamic properties
+    const user = await User.findById(userId).select('-password');
 
     res.json({
       user,

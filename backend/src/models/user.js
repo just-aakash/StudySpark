@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema({
   skills: [{ type: String }],
   improveSkills: { type: String },
   about: { type: String },
+  profilePic: { type: String },
 
   // Gamification & progress
   streak: { type: Number, default: 0 },

@@ -9,6 +9,7 @@ import checkpointRoutes from './routes/checkpoints.js';
 import taskRoutes from './routes/tasks.js';
 import userRoutes from './routes/users.js';
 import aiRoutes from './routes/ai.js';
+import courseRoutes from './routes/courses.js';
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +35,7 @@ app.use('/api/checkpoints', checkpointRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/courses', courseRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {

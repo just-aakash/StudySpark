@@ -6,6 +6,7 @@ import taskService from "../services/taskService";
 import checkpointService from "../services/checkpointService";
 import roadmapService from "../services/roadmapService";
 import aiService from "../services/aiService";
+import courseService from "../services/courseService";
 import logo from "../assets/logo.png";
 import Modal from "../components/Modal";
 import AIChatBot from "../components/AIChatBot";
@@ -50,7 +51,11 @@ function mapRoadPath(nodes) {
 // Helper: map backend checkpoint history to cpScores format
 function mapCpScores(history) {
   if (!history || !history.length) return [];
-  return history.map(h => ({ week: h.week, s: h.score }));
+  return history.map(h => {
+    const d = new Date(h.createdAt);
+    const label = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
+    return { week: h.week, label: h.label || label, s: h.score };
+  });
 }
 
 function Countdown({ days }) {
@@ -97,21 +102,21 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   const [testSubject, setTestSubject] = useState("DSA");
   const [testState, setTestState] = useState({ started: false, q: 0, answers: [], score: null, correct: 0, total: 0, submitting: false, feedback: null });
   const [testLoading, setTestLoading] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
   // ── Settings State ────────────────────────────────────────────
-  const [settings, setSettings] = useState(() => {
-    const saved = localStorage.getItem("studySparkSettings");
-    return saved ? JSON.parse(saved) : {
-      "Checkpoint Reminders": true,
-      "Daily Study Alerts": true,
-      "Streak Notifications": true,
-      "Weak Topic Alerts": true
-    };
+  const [settings, setSettings] = useState({
+    "Checkpoint Reminders": true,
+    "Daily Study Alerts": true,
+    "Streak Notifications": true,
+    "Weak Topic Alerts": true
   });
 
-  const toggleSetting = (name) => {
+  const toggleSetting = async (name) => {
     const newSettings = { ...settings, [name]: !settings[name] };
     setSettings(newSettings);
-    localStorage.setItem("studySparkSettings", JSON.stringify(newSettings));
+    try {
+      await authService.updateProfile({ settings: { theme, notifications: newSettings } });
+    } catch (e) { console.error("Failed to sync settings:", e); }
   };
 
 
@@ -128,26 +133,59 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   const [newTask, setNewTask] = useState({ text: "", subject: "DSA", time: "9:00 AM", type: "topic" });
   const [taskAdding, setTaskAdding] = useState(false);
 
+  // ── Courses catalog state ──────────────────────────────────
+  const [catalogCourses, setCatalogCourses] = useState([]);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+
   const profRef = useRef(null);
 
   // ── Fetch all dashboard data on mount ────────────────────────
   const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
-      const [analytics, todayTasks] = await Promise.all([
+      const [analytics, todayTasks, courseList] = await Promise.all([
         authService.getAnalytics(),
         taskService.getTodaysTasks(),
+        courseService.getCourses(),
       ]);
+
+      // Trigger AI Advice in background (don't block initial mount for it)
+      const fetchAdvice = async () => {
+        setAiLoading(true);
+        try {
+          const adv = await aiService.getStudyAdvice();
+          setAiAdvice(adv.advice);
+        } catch (e) { console.error("Advice fetch err", e); }
+        finally { setAiLoading(false); }
+      };
+      fetchAdvice();
+
+      setCatalogCourses(courseList || []);
 
       // User info
       const u = analytics.user || {};
+      setEnrolledCourses(u.enrolledCourses || []);
       const fullName = `${u.fname || ""} ${u.lname || ""}`.trim() || "Student";
       const av = fullName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
       setLiveUser({
         name: fullName, email: u.email || "",
         roll: u.roll || "", branch: u.branch || "CSE",
-        sem: u.sem || "", av,
+        sem: u.sem || "",
+        phone: u.phone || "",
+        dob: u.dob ? new Date(u.dob).toISOString().split('T')[0] : "",
+        education: u.education || "",
+        year: u.year || "",
+        skills: u.skills ? u.skills.join(", ") : "",
+        about: u.about || "",
+        profilePic: u.profilePic || null,
+        av,
       });
+
+      // Synchronize settings from DB
+      if (u.settings) {
+        if (u.settings.theme) setTheme(u.settings.theme);
+        if (u.settings.notifications) setSettings(u.settings.notifications);
+      }
 
       // Roadmap
       if (analytics.roadmap) {
@@ -380,11 +418,37 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
             )
           )}
         </div>
-        <div className="sb-foot">
-          <button className="sb-logout" onClick={() => navigate("/")}>
-            <span className="sb-icon">↪</span>
-            <span className={`sb-lbl ${!sbOpen ? "hide" : ""}`}>Logout</span>
-          </button>
+        <div className="sb-foot" style={{ padding: '12px 10px', width: '100%', boxSizing: 'border-box' }}>
+          <div className="profile-wrap" ref={profRef} style={{ width: '100%', margin: 0 }}>
+            <div className="profile-btn" onClick={() => setProfOpen(o => !o)} style={{ padding: sbOpen ? '8px' : '4px', width: '100%', display: 'flex', justifyContent: 'center', background: 'transparent', border: sbOpen ? '1px solid var(--border)' : 'none', borderRadius: 12, transition: 'background 0.2s', boxSizing: 'border-box' }}>
+              {liveUser.profilePic ? (
+                <img src={liveUser.profilePic} style={{ width: sbOpen ? 34 : 32, height: sbOpen ? 34 : 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} alt="Profile" />
+              ) : (
+                <div className="profile-av" style={{ width: sbOpen ? 34 : 32, height: sbOpen ? 34 : 32, fontSize: sbOpen ? 14 : 12, flexShrink: 0 }}>{liveUser.av}</div>
+              )}
+              {sbOpen && (
+                <>
+                  <div style={{ marginLeft: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', overflow: 'hidden', flex: 1 }}>
+                    <span className="profile-name" style={{ fontSize: 13, fontWeight: 700, margin: 0, textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', width: '100%', textAlign: 'left' }}>{liveUser.name}</span>
+                    <span style={{ fontSize: 10, color: "var(--accent)", textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', width: '100%', textAlign: 'left', fontWeight: 600 }}>{liveUser.roll || 'Student'}</span>
+                  </div>
+                  <span style={{ fontSize: 18, color: "var(--muted)", alignSelf: 'center', marginLeft: 4, lineHeight: 1 }}>▴</span>
+                </>
+              )}
+            </div>
+            {profOpen && (
+              <div className="pdrop" style={{ bottom: 'calc(100% + 10px)', top: 'auto', left: sbOpen ? 0 : '70px', right: 'auto', width: '220px', transform: 'none', boxShadow: '0 -4px 20px rgba(0,0,0,0.15)' }}>
+                <div className="pdrop-head">
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{liveUser.name}</div>
+                  <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{liveUser.email}</div>
+                  <div style={{ fontSize: 11, color: "var(--accent)", marginTop: 3 }}>{liveUser.roll} · {liveUser.branch}</div>
+                </div>
+                <div className="pdrop-item" onClick={() => { setModal({ type: "editProfile" }); setProfOpen(false); }}>✏️<span>Edit Profile</span></div>
+                <div className="pdrop-item" onClick={() => { setModal({ type: "settings" }); setProfOpen(false); }}>⚙️<span>Settings</span></div>
+                <div className="pdrop-item danger" onClick={() => navigate("/")}>↪<span>Logout</span></div>
+              </div>
+            )}
+          </div>
         </div>
       </aside>
 
@@ -407,25 +471,6 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               </div>
             )}
           </div>
-          <div className="profile-wrap" ref={profRef}>
-            <div className="profile-btn" onClick={() => setProfOpen(o => !o)}>
-              <div className="profile-av">{liveUser.av}</div>
-              <span className="profile-name">{liveUser.name.split(" ")[0]}</span>
-              <span style={{ fontSize: 11, color: "var(--muted)" }}>▾</span>
-            </div>
-            {profOpen && (
-              <div className="pdrop">
-                <div className="pdrop-head">
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>{liveUser.name}</div>
-                  <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{liveUser.email}</div>
-                  <div style={{ fontSize: 11, color: "var(--accent)", marginTop: 3 }}>{liveUser.roll} · {liveUser.branch}</div>
-                </div>
-                <div className="pdrop-item" onClick={() => { setModal({ type: "editProfile" }); setProfOpen(false); }}>✏️<span>Edit Profile</span></div>
-                <div className="pdrop-item" onClick={() => { setModal({ type: "settings" }); setProfOpen(false); }}>⚙️<span>Settings</span></div>
-                <div className="pdrop-item danger" onClick={() => navigate("/")}>↪<span>Logout</span></div>
-              </div>
-            )}
-          </div>
         </nav>
 
         {/* CONTENT */}
@@ -437,9 +482,47 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
                 <div>
                   {/* <div className="page-h">Dashboard 👋</div> */}
-                  <div className="page-h">Welcome back, {liveUser.name.split(" ")[0]}.</div>
+                  <div className="page-h" style={{
+                    background: "linear-gradient(90deg, var(--text) 0%, var(--muted) 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                  }}>
+                    Welcome back, {liveUser.name.split(" ")[0]}.
+                  </div>
                 </div>
-                <div style={{ fontSize: 12, color: "var(--muted)" }}>{new Date().toLocaleDateString("en-IN", { weekday: "long", month: "long", day: "numeric" })}</div>
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-end',
+                  gap: 4
+                }}>
+                  <div style={{
+                    fontSize: 12,
+                    color: "var(--accent)",
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: 2,
+                    marginBottom: 2
+                  }}>
+                    Current Status
+                  </div>
+                  <div style={{
+                    fontSize: 14,
+                    color: "var(--text)",
+                    background: "rgba(255,255,255,0.03)",
+                    padding: "8px 16px",
+                    borderRadius: "12px",
+                    border: "1px solid var(--border)",
+                    boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    fontWeight: 600
+                  }}>
+                    <span style={{ fontSize: 16 }}>📅</span>
+                    {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}
+                  </div>
+                </div>
               </div>
 
               {/* AI ADVICE CARD */}
@@ -554,23 +637,57 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                 <div className="wg">
                   <div className="wg-title">🔗 Consistency Tracker</div>
                   <div style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>Current Month - March 2025</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 2, marginBottom: 12 }}>
-                      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => <div key={i} style={{ fontSize: 8, textAlign: "center", color: "var(--muted)", fontWeight: 700, paddingBottom: 4 }}>{d}</div>)}
-                      {Array.from({ length: 35 }).map((_, i) => {
-                        // Show last 35 days (5 weeks)
-                        const d = new Date();
-                        d.setDate(d.getDate() - (34 - i));
-                        const dateStr = d.toISOString().split("T")[0];
-                        const activity = consistencyData[dateStr] || 0;
-                        const intensity = Math.min(activity, 5);
-                        const colors = ["var(--surface3)", "rgba(0,212,170,0.15)", "rgba(0,212,170,0.3)", "rgba(0,212,170,0.5)", "rgba(0,212,170,0.75)", "var(--accent)"];
-                        return (
-                          <div key={i} title={`${dateStr}: ${activity} activities`}
-                            style={{ aspectRatio: "1", background: colors[intensity], border: "1px solid var(--border)", borderRadius: 3 }}>
-                          </div>
-                        );
-                      })}
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text)", marginBottom: 12, fontFamily: 'var(--display)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 18 }}>📅</span>
+                      {new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 6, marginBottom: 12 }}>
+                      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d, i) => <div key={i} style={{ fontSize: 10, textAlign: "center", color: "var(--muted)", fontWeight: 800, paddingBottom: 4, textTransform: 'uppercase', letterSpacing: 1 }}>{d}</div>)}
+                      {(() => {
+                        const now = new Date();
+                        const year = now.getFullYear();
+                        const month = now.getMonth();
+                        const firstDay = new Date(year, month, 1).getDay();
+                        const daysInMonth = new Date(year, month + 1, 0).getDate();
+                        const slots = [];
+
+                        // Padding days from previous month
+                        for (let i = 0; i < firstDay; i++) {
+                          slots.push(<div key={`pad-${i}`} style={{ aspectRatio: "1" }} />);
+                        }
+
+                        // Actual days of current month
+                        for (let day = 1; day <= daysInMonth; day++) {
+                          const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                          const activity = consistencyData[dateStr] || 0;
+                          const intensity = Math.min(activity, 5);
+                          const isToday = now.getDate() === day && now.getMonth() === month && now.getFullYear() === year;
+                          const colors = ["var(--surface3)", "rgba(0,212,170,0.15)", "rgba(0,212,170,0.3)", "rgba(0,212,170,0.5)", "rgba(0,212,170,0.75)", "var(--accent)"];
+
+                          slots.push(
+                            <div key={day} title={`${dateStr}: ${activity} activities`}
+                              style={{
+                                aspectRatio: "1",
+                                background: colors[intensity],
+                                border: isToday ? "2px solid var(--accent)" : "1px solid var(--border)",
+                                borderRadius: 6,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: intensity > 2 ? "#000" : "var(--text)",
+                                transition: 'transform 0.1s',
+                                cursor: 'pointer',
+                                position: 'relative'
+                              }}>
+                              {day}
+                              {activity > 0 && <div style={{ position: 'absolute', top: 2, right: 2, width: 4, height: 4, borderRadius: '50%', background: intensity > 2 ? '#000' : 'var(--accent)' }} />}
+                            </div>
+                          );
+                        }
+                        return slots;
+                      })()}
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 4, alignItems: "center", fontSize: 9, color: "var(--muted)" }}>
@@ -594,8 +711,8 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                     <polyline fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" points={cpScores.map((c, i) => `${i * 44},${90 - c.s * 0.8}`).join(" ")} />
                     {cpScores.map((c, i) => <circle key={i} cx={i * 44} cy={90 - c.s * 0.8} r="4" fill="var(--accent)" />)}
                   </svg>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--muted)", marginTop: 4 }}>
-                    {cpScores.map(c => <span key={c._id || c.week}>{c.week}</span>)}
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--muted)", marginTop: 12, padding: "0 10px" }}>
+                    {cpScores.map((c, i) => <span key={i} style={{ transform: "rotate(-25deg)", origin: "center" }}>{c.label}</span>)}
                   </div>
                 </div>
 
@@ -843,17 +960,17 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               </div>
               <div className="wg" style={{ marginBottom: 20 }}>
                 <div className="wg-title">📈 Weekly Score Trend</div>
-                <svg viewBox="0 0 500 120" style={{ width: "100%" }}>
+                <svg viewBox="0 0 500 160" style={{ width: "100%", overflow: "visible" }}>
                   {[30, 60, 90].map(y => (
-                    <g key={y}><line x1="40" y1={120 - y} x2="480" y2={120 - y} stroke="var(--border)" strokeWidth="1" /><text x="32" y={124 - y} fill="var(--muted)" fontSize="10" textAnchor="end">{y}</text></g>
+                    <g key={y}><line x1="40" y1={120 - y} x2="480" y2={120 - y} stroke="var(--border)" strokeWidth="1" opacity="0.4" /><text x="32" y={124 - y} fill="var(--muted)" fontSize="10" textAnchor="end">{y}%</text></g>
                   ))}
-                  <polyline fill="none" stroke="var(--accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+                  <polyline fill="none" stroke="var(--accent)" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"
                     points={analyticsData.map((d, i) => `${60 + i * 58},${120 - d.score}`).join(" ")} />
                   {analyticsData.map((d, i) => (
                     <g key={i}>
-                      <circle cx={60 + i * 58} cy={120 - d.score} r="5" fill={d.score >= 70 ? "var(--green)" : d.score >= 50 ? "var(--yellow)" : "var(--red)"} />
-                      <text x={60 + i * 58} y={120 - d.score - 10} fill="var(--text)" fontSize="11" textAnchor="middle" fontWeight="700">{d.score}</text>
-                      <text x={60 + i * 58} y="118" fill="var(--muted)" fontSize="10" textAnchor="middle">{d.week}</text>
+                      <circle cx={60 + i * 58} cy={120 - d.score} r="6" fill="var(--bg)" stroke={d.score >= 70 ? "var(--green)" : d.score >= 50 ? "var(--yellow)" : "var(--red)"} strokeWidth="3" />
+                      <text x={60 + i * 58} y={120 - d.score - 15} fill="var(--text)" fontSize="11" textAnchor="middle" fontWeight="800">{d.score}</text>
+                      <text x={60 + i * 58} y="152" fill="var(--muted)" fontSize="10" textAnchor="middle" transform={`rotate(-30 ${60 + i * 58} 152)`}>{d.label}</text>
                     </g>
                   ))}
                 </svg>
@@ -877,36 +994,52 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
             <div>
               <div className="page-h">📚 My Courses</div>
               <div className="page-sub">Your enrolled courses and additional courses you can join.</div>
-              <div style={{ fontFamily: "var(--display)", fontSize: 17, fontWeight: 700, marginBottom: 14, color: "var(--accent)" }}>📌 Enrolled Courses</div>
+              <div style={{ fontFamily: "var(--display)", fontSize: 26, fontWeight: 800, margin: "24px 0 16px", color: "var(--text)", letterSpacing: "-0.5px", background: "var(--surface)", padding: "8px 16px", borderRadius: 12, display: "inline-block", border: "1px solid var(--border)" }}>📌 Enrolled Courses</div>
               <div className="g3" style={{ marginBottom: 32 }}>
-                {roadmapProgress.length > 0 ? roadmapProgress.map(c => {
-                  const icons = { "DSA": "🌳", "OS": "💻", "DBMS": "🗃️", "CN": "🌐", "Algorithms": "🧬" };
-                  return (
-                    <div key={c.topic} className="wg">
-                      <div style={{ fontSize: 36, marginBottom: 12 }}>{icons[c.topic] || "📚"}</div>
-                      <div style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{c.topic}</div>
-                      <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 10 }}>{c.pct}% complete</div>
-                      <button className="btn-primary" style={{ marginTop: 14, width: "100%", padding: "9px", fontSize: 13 }} onClick={() => setActive("roadmap")}>Continue →</button>
-                    </div>
-                  );
-                }) : <div style={{ color: "var(--muted)", fontSize: 14 }}>No courses enrolled. Generate a roadmap!</div>}
+                {enrolledCourses.length > 0 || roadmapProgress.length > 0 ? (
+                  <>
+                    {roadmapProgress.map(c => {
+                      const icons = { "DSA": "🌳", "OS": "💻", "DBMS": "🗃️", "CN": "🌐", "Algorithms": "🧬" };
+                      return (
+                        <div key={c.topic} className="wg">
+                          <div style={{ fontSize: 36, marginBottom: 12 }}>{icons[c.topic] || "📚"}</div>
+                          <div style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{c.topic}</div>
+                          <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 10 }}>{c.pct}% complete</div>
+                          <button className="btn-primary" style={{ marginTop: 14, width: "100%", padding: "9px", fontSize: 13 }} onClick={() => setActive("roadmap")}>Continue →</button>
+                        </div>
+                      );
+                    })}
+                    {enrolledCourses.filter(title => !roadmapProgress.find(rp => rp.topic === title)).map(title => {
+                      const courseMeta = catalogCourses.find(c => c.title === title) || { icon: "📚", color: "var(--accent)" };
+                      return (
+                        <div key={title} className="wg">
+                          <div style={{ fontSize: 36, marginBottom: 12 }}>{courseMeta.icon}</div>
+                          <div style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{title}</div>
+                          <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 10 }}>0% complete</div>
+                          <button className="btn-primary" style={{ marginTop: 14, width: "100%", padding: "9px", fontSize: 13 }} onClick={() => setActive("roadmap")}>Start Roadmap →</button>
+                        </div>
+                      )
+                    })}
+                  </>
+                ) : <div style={{ color: "var(--muted)", fontSize: 14 }}>No courses enrolled. Join one below!</div>}
               </div>
               <div style={{ fontFamily: "var(--display)", fontSize: 17, fontWeight: 700, marginBottom: 14 }}>🌟 More Courses</div>
               <div className="g3">
-                {[
-                  { icon: "🌐", title: "Full Stack Web Dev", color: "#6366f1" },
-                  { icon: "🤖", title: "Machine Learning", color: "#f59e0b" },
-                  { icon: "📡", title: "Computer Networks", color: "#a855f7" },
-                  { icon: "🐍", title: "Python Programming", color: "#22c55e" },
-                  { icon: "☁️", title: "Cloud & DevOps", color: "#38bdf8" },
-                  { icon: "☕", title: "Java & OOP", color: "#f97316" },
-                ].map(c => (
-                  <div key={c.title} className="wg">
+                {catalogCourses.length > 0 ? catalogCourses.map(c => (
+                  <div key={c._id || c.title} className="wg">
                     <div style={{ fontSize: 36, marginBottom: 10 }}>{c.icon}</div>
                     <div style={{ fontFamily: "var(--display)", fontSize: 15, fontWeight: 700, marginBottom: 12 }}>{c.title}</div>
-                    <button className="btn-outline" style={{ width: "100%", padding: "9px", fontSize: 13 }} onClick={() => alert("Successfully enrolled in " + c.title + "!")}>+ Enroll</button>
+                    {enrolledCourses.includes(c.title) ? (
+                      <button className="btn-outline" style={{ width: "100%", padding: "9px", fontSize: 13, borderColor: "var(--border)", color: "var(--muted)", cursor: "default" }} disabled>✓ Enrolled</button>
+                    ) : (
+                      <button className="btn-outline" style={{ width: "100%", padding: "9px", fontSize: 13, borderColor: c.color, color: c.color }} onClick={async () => {
+                        const updated = [...enrolledCourses, c.title];
+                        setEnrolledCourses(updated);
+                        try { await authService.updateProfile({ enrolledCourses: updated }); } catch (e) { }
+                      }}>+ Enroll</button>
+                    )}
                   </div>
-                ))}
+                )) : <div style={{ color: "var(--muted)", fontSize: 14 }}>No courses available.</div>}
               </div>
             </div>
           )}
@@ -1262,13 +1395,99 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
       {modal?.type === "editProfile" && (
         <Modal title="✏️ Edit Profile" onClose={() => setModal(null)}>
-          {[["Full Name", "text", liveUser.name], ["Email", "email", liveUser.email], ["Roll No.", "text", liveUser.roll], ["Branch", "text", liveUser.branch]].map(([l, t, v]) => (
-            <div key={l} style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{l}</div>
-              <input type={t} defaultValue={v} className="input-field" />
+          <div style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: 10 }}>
+            {/* Image Upload System */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 24 }}>
+              <img id="profile-img-preview" src={liveUser.profilePic || `https://ui-avatars.com/api/?name=${liveUser.name.replace(' ', '+')}&background=random`} style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', marginBottom: 12, border: '2px solid var(--accent)' }} alt="Preview" />
+              <input type="file" id="profile-file-input" accept="image/*" style={{ display: 'none' }} onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onload = (ev) => {
+                    const img = document.getElementById('profile-img-preview');
+                    img.src = ev.target.result;
+                    img.dataset.delete = "false";
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }} />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="btn-outline" style={{ fontSize: 12, padding: '8px 16px', borderRadius: 20 }} onClick={() => document.getElementById('profile-file-input').click()}>Upload</button>
+                <button className="btn-outline" style={{ fontSize: 12, padding: '8px 16px', borderRadius: 20, color: '#f87171', borderColor: '#f87171' }} onClick={() => {
+                  const img = document.getElementById('profile-img-preview');
+                  img.src = `https://ui-avatars.com/api/?name=${liveUser.name.replace(' ', '+')}&background=random`;
+                  img.dataset.delete = "true";
+                }}>Delete</button>
+              </div>
             </div>
-          ))}
-          <button className="btn-primary" style={{ width: "100%", padding: "12px", fontSize: 15 }} onClick={() => setModal(null)}>Save Changes</button>
+
+            {/* Profile Fields */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+              {[
+                ["Full Name", "text", liveUser.name, "full"],
+                ["Phone Number", "text", liveUser.phone, "phone"],
+                ["Date of Birth", "date", liveUser.dob, "dob"],
+                ["Roll No.", "text", liveUser.roll, "roll"],
+                ["Branch", "text", liveUser.branch, "branch"],
+                ["Education / Degree", "text", liveUser.education, "education"],
+                ["Graduation Year", "text", liveUser.year, "year"],
+                ["Skills (comma separated)", "text", liveUser.skills, "skills"]
+              ].map(([l, t, v, id]) => (
+                <div key={id}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{l}</div>
+                  <input type={t} defaultValue={v} className="input-field" id={`profile-${id}`} style={{ width: '100%', boxSizing: 'border-box' }} />
+                </div>
+              ))}
+            </div>
+
+            {/* About Me block */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Short Bio / About</div>
+              <textarea defaultValue={liveUser.about} className="input-field" id="profile-about" style={{ width: '100%', minHeight: 80, resize: 'vertical', boxSizing: 'border-box' }} />
+            </div>
+
+            <button className="btn-primary" style={{ width: "100%", padding: "12px", fontSize: 15 }} onClick={async () => {
+              const nameParts = document.getElementById('profile-full').value.split(' ');
+              const fname = nameParts[0] || '';
+              const lname = nameParts.slice(1).join(' ') || '';
+
+              const payload = {
+                fname, lname,
+                phone: document.getElementById('profile-phone').value,
+                dob: document.getElementById('profile-dob').value,
+                roll: document.getElementById('profile-roll').value,
+                branch: document.getElementById('profile-branch').value,
+                education: document.getElementById('profile-education').value,
+                year: document.getElementById('profile-year').value,
+                skills: document.getElementById('profile-skills').value.split(',').map(s => s.trim()).filter(Boolean),
+                about: document.getElementById('profile-about').value
+              };
+
+              const imgEl = document.getElementById('profile-img-preview');
+              const picSrc = imgEl.src;
+              if (picSrc.startsWith('data:image')) {
+                payload.profilePic = picSrc;
+              } else if (imgEl.dataset.delete === "true") {
+                payload.profilePic = "";
+              }
+
+              try {
+                const saved = await authService.updateProfile(payload);
+                setLiveUser(prev => ({
+                  ...prev,
+                  name: `${fname} ${lname}`.trim(),
+                  phone: payload.phone, dob: payload.dob,
+                  roll: payload.roll, branch: payload.branch,
+                  education: payload.education, year: payload.year,
+                  skills: payload.skills.join(', '), about: payload.about,
+                  profilePic: saved.profilePic === "" ? null : (saved.profilePic || prev.profilePic)
+                }));
+                setModal(null);
+              } catch (e) {
+                alert("Failed to update profile.");
+              }
+            }}>Save Changes</button>
+          </div>
         </Modal>
       )}
 
@@ -1278,7 +1497,10 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
             <div style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, marginBottom: 14 }}>🎨 Theme</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {["dark", "light"].map(t => (
-                <button key={t} onClick={() => setTheme(t)}
+                <button key={t} onClick={async () => {
+                  setTheme(t);
+                  try { await authService.updateProfile({ settings: { theme: t, notifications: settings } }); } catch (e) { }
+                }}
                   style={{ padding: 14, background: theme === t ? "rgba(0,212,170,0.1)" : "var(--surface2)", border: `2px solid ${theme === t ? "var(--accent)" : "var(--border)"}`, borderRadius: 12, color: theme === t ? "var(--accent)" : "var(--text)", fontWeight: 700, fontSize: 15, cursor: "pointer", fontFamily: "var(--font)", transition: '0.2s' }}>
                   {t === "dark" ? "🌙 Dark" : "☀️ Light"}
                 </button>
@@ -1290,7 +1512,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
             {["Checkpoint Reminders", "Daily Study Alerts", "Streak Notifications", "Weak Topic Alerts"].map(n => (
               <div key={n} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
                 <span style={{ fontSize: 14 }}>{n}</span>
-                <div 
+                <div
                   onClick={() => toggleSetting(n)}
                   style={{ width: 42, height: 22, borderRadius: 99, background: settings[n] ? "var(--accent)" : "var(--surface3)", cursor: "pointer", position: "relative", transition: "0.3s" }}>
                   <div style={{ width: 16, height: 16, borderRadius: "50%", background: settings[n] ? "#000" : "var(--muted)", position: "absolute", top: 3, left: settings[n] ? 23 : 3, transition: "0.3s" }} />

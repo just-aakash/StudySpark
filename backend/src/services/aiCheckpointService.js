@@ -69,8 +69,8 @@ export async function generateAIQuestions(subject, count = 5, ctx = {}) {
 
   const difficulty = ctx.lastScore != null
     ? ctx.lastScore >= 70 ? 'hard'
-    : ctx.lastScore >= 50 ? 'medium'
-    : 'easy'
+      : ctx.lastScore >= 50 ? 'medium'
+        : 'easy'
     : 'medium';
 
   const weakStr = ctx.weakTopics?.length
