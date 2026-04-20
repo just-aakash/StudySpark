@@ -49,8 +49,9 @@ An intelligent, adaptive learning platform powered by AI. StudySpark transforms 
    Create a `.env` file in the `backend` directory and add your environment variables:
    ```env
    PORT=5000
-   MONGO_URI=your_mongodb_connection_string
+   MONGODB_URI=your_mongodb_connection_string
    JWT_SECRET=your_jwt_secret
+   NODE_ENV=development
    GEMINI_API_KEY=your_gemini_api_key
    ```
    Start the backend development server:
@@ -63,6 +64,10 @@ An intelligent, adaptive learning platform powered by AI. StudySpark transforms 
    cd ../frontend
    npm install
    ```
+   Create a `.env` file in the `frontend` directory and add your environment variables:
+   ```env
+   VITE_API_URL=http://localhost:5000/api
+   ```
    Start the frontend development server:
    ```bash
    npm run dev
@@ -73,8 +78,9 @@ An intelligent, adaptive learning platform powered by AI. StudySpark transforms 
 ```text
 StudySpark/
 ├── backend/          # Node.js + Express backend
+│   ├── src/          # Source code (controllers, models, routes, services)
 │   ├── package.json
-│   └── server.js     # Main entry point (includes AI and Caching logic)
+│   └── server.js     # Main entry point
 └── frontend/         # React + Vite frontend
     ├── src/          # Source code including components & pages
     ├── index.html    # Entry HTML
