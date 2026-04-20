@@ -1,7 +1,8 @@
 import { generateJSON } from './geminiService.js';
+import Question from '../models/Question.js';
 
 // ── Static fallback question bank ────────────────────────────────────
-const FALLBACK_QUESTIONS = {
+export const FALLBACK_QUESTIONS = {
   DSA: [
     { q: 'What is the time complexity of binary search?', opts: ['O(n)', 'O(log n)', 'O(n²)', 'O(1)'], ans: 1 },
     { q: 'Which data structure is used in BFS?', opts: ['Stack', 'Priority Queue', 'Queue', 'Deque'], ans: 2 },
@@ -63,63 +64,28 @@ const FALLBACK_QUESTIONS = {
  * @returns {Promise<Array<{q, opts, ans}>>} - Array of question objects WITH answers
  */
 export async function generateAIQuestions(subject, count = 5, ctx = {}) {
-  if (!process.env.GEMINI_API_KEY) {
-    return pickFromFallback(subject, count);
-  }
-
-  const difficulty = ctx.lastScore != null
-    ? ctx.lastScore >= 70 ? 'hard'
-      : ctx.lastScore >= 50 ? 'medium'
-        : 'easy'
-    : 'medium';
-
-  const weakStr = ctx.weakTopics?.length
-    ? `Focus more on these weak areas: ${ctx.weakTopics.join(', ')}.`
-    : '';
-
-  const prompt = `
-You are an expert CS quiz generator. Generate exactly ${count} unique multiple-choice questions 
-for the topic "${subject}" at ${difficulty} difficulty level for a university student.
-${weakStr}
-
-Return ONLY a valid JSON array (no markdown, no extra text) like:
-[
-  {
-    "q": "Question text here?",
-    "opts": ["Option A", "Option B", "Option C", "Option D"],
-    "ans": 0
-  }
-]
-
-Rules:
-- "ans" is the 0-based index of the CORRECT option.
-- Each question must have exactly 4 options.
-- Questions should test conceptual understanding, not just memorization.
-- Make distractors realistic and plausible.
-- No repeated questions.
-- Keep questions concise and clear.
-`.trim();
-
   try {
-    const questions = await generateJSON(prompt);
+    // Fetch random questions from the database for the given subject
+    const questions = await Question.aggregate([
+      { $match: { subject: subject } },
+      { $sample: { size: count } }
+    ]);
 
-    if (!Array.isArray(questions) || questions.length === 0) {
-      throw new Error('Invalid AI question format');
+    if (questions.length > 0) {
+      console.log(`[Checkpoint Service] Fetched ${questions.length} questions from DB for ${subject}`);
+      // Remove Mongoose specific fields to match the expected return format
+      return questions.map(q => ({
+        q: q.q,
+        opts: q.opts,
+        ans: q.ans
+      }));
     }
 
-    // Validate each question has required fields
-    const valid = questions.filter(
-      q => q.q && Array.isArray(q.opts) && q.opts.length === 4 && typeof q.ans === 'number'
-    );
+    console.warn(`[Checkpoint Service] No questions in DB for ${subject}. Using fallback.`);
+    return pickFromFallback(subject, count);
 
-    if (valid.length < count) {
-      throw new Error(`Only ${valid.length} valid questions returned, need ${count}`);
-    }
-
-    console.log(`[AI Checkpoint] Generated ${valid.length} questions for ${subject} (${difficulty})`);
-    return valid.slice(0, count);
   } catch (err) {
-    console.warn(`[AI Checkpoint] Gemini failed for ${subject}, using fallback:`, err.message);
+    console.error(`[Checkpoint Service] Error fetching questions:`, err.message);
     return pickFromFallback(subject, count);
   }
 }
@@ -130,5 +96,4 @@ function pickFromFallback(subject, count) {
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
-export { FALLBACK_QUESTIONS };
 export default { generateAIQuestions };
