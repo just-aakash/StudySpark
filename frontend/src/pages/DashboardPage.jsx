@@ -10,6 +10,7 @@ import courseService from "../services/courseService";
 import logo from "../assets/logo.png";
 import Modal from "../components/Modal";
 import AIChatBot from "../components/AIChatBot";
+import focusTracker from "../utils/focusTracker";
 
 // ── Default/fallback data shown while real data loads ──────────
 const DEFAULT_ROADMAP_PROGRESS = [
@@ -96,6 +97,22 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   const [consistencyData, setConsistencyData] = useState({});
   const [completionPct, setCompletionPct] = useState(0);
   const [stats, setStats] = useState({});
+  const [focus, setFocus] = useState({
+  tabSwitches: 0,
+  score: 100
+});
+  useEffect(() => {
+  focusTracker.start();
+
+ const interval = setInterval(() => {
+  setFocus(focusTracker.getData());
+}, 1000);
+
+  return () => {
+    focusTracker.stop();
+    clearInterval(interval);
+  };
+}, []);
 
   // ── Checkpoint test state ────────────────────────────────────
   const [testQuestions, setTestQuestions] = useState([]);
@@ -475,7 +492,27 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
         {/* CONTENT */}
         <div className="dash-content">
-
+            {/* 🔥 FOCUS TRACKER — PASTE HERE */}
+  <div style={{
+    position: "fixed",
+    top: "80px",
+    right: "20px",
+    background: focus.score > 70 ? "#111" : focus.score > 40 ? "#f59e0b" : "#ef4444",
+    color: "white",
+    padding: "10px 14px",
+    borderRadius: "10px",
+    zIndex: 9999,
+    fontSize: "13px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.4)",
+    minWidth: "120px"
+  }}>
+    <div style={{ fontWeight: "600" }}>
+      Focus: {focus.score}
+    </div>
+    <div style={{ fontSize: "12px", opacity: 0.8 }}>
+      Switches: {focus.tabSwitches}
+    </div>
+  </div>
           {/* ── DASHBOARD HOME ── */}
           {active === "dashboard" && (
             <div>
