@@ -495,7 +495,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
             {/* 🔥 FOCUS TRACKER — PASTE HERE */}
   <div style={{
     position: "fixed",
-    top: "80px",
+    top: "10px",
     right: "20px",
     background: focus.score > 70 ? "#111" : focus.score > 40 ? "#f59e0b" : "#ef4444",
     color: "white",
