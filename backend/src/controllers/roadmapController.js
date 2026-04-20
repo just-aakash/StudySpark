@@ -38,21 +38,45 @@ export const generateRoadmap = async (req, res) => {
       subjects.map(s => generateAIRoadmap(s, { year: user?.year, weakTopics }))
     );
 
-    // Flatten nodes (all subjects combined in order)
-    const nodes = results.flatMap(r => r.nodes);
+    // Flatten newly generated nodes
+    const newNodes = results.flatMap(r => r.nodes);
+    // Build progress for newly generated subjects
+    const newProgress = subjects.map((s, i) => buildProgress(s, results[i].nodes.length, results[i].color));
 
-    // Build progress per subject from AI-returned node counts
-    const progress = subjects.map((s, i) => buildProgress(s, results[i].nodes.length, results[i].color));
+    // Combine with existing data (additive)
+    let finalSubjects = existing ? [...existing.subjects] : [];
+    let finalNodes = existing ? [...existing.nodes] : [];
+    let finalProgress = existing ? [...existing.progress] : [];
 
-    // Upsert: one roadmap per user
+    subjects.forEach((subj) => {
+      // Add subject to list if not present
+      if (!finalSubjects.includes(subj)) finalSubjects.push(subj);
+      
+      // Remove any old nodes/progress for this specific subject so we can replace them
+      finalNodes = finalNodes.filter(n => n.subject !== subj);
+      finalProgress = finalProgress.filter(p => p.subject !== subj);
+    });
+
+    // Append the newly generated data
+    finalNodes.push(...newNodes);
+    finalProgress.push(...newProgress);
+
+    // Upsert the roadmap document
     const roadmap = await Roadmap.findOneAndUpdate(
       { userId: req.user._id },
-      { userId: req.user._id, subjects, nodes, progress },
+      { 
+        userId: req.user._id, 
+        subjects: finalSubjects, 
+        nodes: finalNodes, 
+        progress: finalProgress 
+      },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // Also update enrolledCourses on User
-    await User.findByIdAndUpdate(req.user._id, { enrolledCourses: subjects });
+    // Also update enrolledCourses on User to include the new subjects without deleting old ones
+    await User.findByIdAndUpdate(req.user._id, { 
+      $addToSet: { enrolledCourses: { $each: subjects } } 
+    });
 
     res.status(201).json({ ...roadmap.toObject(), aiGenerated: !!process.env.GEMINI_API_KEY });
   } catch (error) {

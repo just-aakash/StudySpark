@@ -2,9 +2,45 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize the Gemini client once
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// Using gemini-2.5-flash as per user preference (caching will handle quota)
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+
+// Helper for local ollama generate
+async function ollamaGenerate(prompt, format = '') {
+  const response = await fetch(`${process.env.LOCAL_LLM_URL}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: process.env.OLLAMA_MODEL || 'llama3',
+      prompt: prompt,
+      stream: false,
+      format: format === 'json' ? 'json' : undefined
+    })
+  });
+  if (!response.ok) throw new Error('Ollama connection failed');
+  const data = await response.json();
+  return data.response;
+}
+
+// Helper for local ollama chat
+async function ollamaChat(messages) {
+  const ollamaMessages = messages.map(msg => ({
+    role: msg.role === 'ai' || msg.role === 'assistant' || msg.role === 'model' ? 'assistant' : 'user',
+    content: msg.text || (msg.parts && msg.parts[0]?.text) || " "
+  }));
+
+  const response = await fetch(`${process.env.LOCAL_LLM_URL}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: process.env.OLLAMA_MODEL || 'llama3',
+      messages: ollamaMessages,
+      stream: false
+    })
+  });
+  if (!response.ok) throw new Error('Ollama connection failed');
+  const data = await response.json();
+  return data.message.content;
+}
 
 /**
  * Send a prompt to Gemini and return the text response.
@@ -13,6 +49,15 @@ const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
  * @returns {Promise<string>} - The generated text.
  */
 export async function generateText(prompt, options = {}) {
+  if (process.env.USE_LOCAL_LLM === 'true') {
+    try {
+      console.log(`[Ollama] Routing text generation to ${process.env.OLLAMA_MODEL}...`);
+      return await ollamaGenerate(prompt);
+    } catch (err) {
+      console.warn(`[Ollama] Failed (${err.message}), falling back to Gemini...`);
+    }
+  }
+
   const config = {
     temperature: 0.7,
     maxOutputTokens: 2048,
@@ -47,6 +92,16 @@ export async function generateText(prompt, options = {}) {
  * @returns {Promise<object>}
  */
 export async function generateJSON(prompt, options = {}) {
+  if (process.env.USE_LOCAL_LLM === 'true') {
+    try {
+      console.log(`[Ollama] Routing JSON generation to ${process.env.OLLAMA_MODEL}...`);
+      const response = await ollamaGenerate(prompt, 'json');
+      return JSON.parse(response);
+    } catch (err) {
+      console.warn(`[Ollama] Failed (${err.message}), falling back to Gemini JSON generation...`);
+    }
+  }
+
   const text = await generateText(prompt, {
     temperature: 0.4,  // Lower temp for more deterministic JSON
     ...options,
@@ -69,6 +124,15 @@ export async function generateJSON(prompt, options = {}) {
  * @returns {Promise<string>} - The generated text response.
  */
 export async function generateChat(messages, options = {}) {
+  if (process.env.USE_LOCAL_LLM === 'true') {
+    try {
+      console.log(`[Ollama] Routing chat to ${process.env.OLLAMA_MODEL}...`);
+      return await ollamaChat(messages);
+    } catch (err) {
+      console.warn(`[Ollama] Failed (${err.message}), falling back to Gemini chat...`);
+    }
+  }
+
   const config = {
     temperature: 0.7,
     maxOutputTokens: 2048,

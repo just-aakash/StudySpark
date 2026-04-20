@@ -10,6 +10,7 @@ import taskRoutes from './routes/tasks.js';
 import userRoutes from './routes/users.js';
 import aiRoutes from './routes/ai.js';
 import courseRoutes from './routes/courses.js';
+import contactRoutes from './routes/contact.js';
 
 // Load environment variables
 dotenv.config();
@@ -36,6 +37,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/courses', courseRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
