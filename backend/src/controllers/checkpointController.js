@@ -1,12 +1,7 @@
 import Checkpoint from '../models/checkpoint.js';
 import User from '../models/user.js';
+import Question from '../models/Question.js';
 import { generateAIQuestions, FALLBACK_QUESTIONS } from '../services/aiCheckpointService.js';
-
-
-
-// ── Question cache per request (AI questions stored for server-side validation) ──
-// Key: `${userId}:${subject}` → array of questions with answers
-const sessionCache = new Map();
 
 // Compute week label (W1, W2...) based on how many sessions the user has done
 function computeWeekLabel(count) {
@@ -37,10 +32,6 @@ export const getCheckpointQuestions = async (req, res) => {
       return res.status(404).json({ message: 'No questions found for this subject.' });
     }
 
-    // Cache the full questions (with answers) server-side for validation at submit
-    const cacheKey = `${req.user._id}:${subject}`;
-    sessionCache.set(cacheKey, questions);
-
     // Return questions WITHOUT the answer key to the client
     const safeQuestions = questions.map(({ q, opts }) => ({ q, opts }));
     res.json({ subject, questions: safeQuestions, aiGenerated: !!process.env.GEMINI_API_KEY });
@@ -63,21 +54,22 @@ export const submitCheckpoint = async (req, res) => {
       return res.status(400).json({ message: 'answers and questions are required.' });
     }
 
-    // Use server-cached AI questions for validation (prevents client cheating)
-    const cacheKey = `${req.user._id}:${subject}`;
-    const cachedQuestions = sessionCache.get(cacheKey);
+    // Extract question texts
+    const questionTexts = clientQuestions.map(cq => cq.q);
 
-    // Match client questions against server-authoritative questions with answers
-    let serverBank;
-    if (cachedQuestions?.length) {
-      serverBank = cachedQuestions;
-      sessionCache.delete(cacheKey); // one-time use
-    } else {
-      // Fallback: match against static bank
-      serverBank = FALLBACK_QUESTIONS[subject] || FALLBACK_QUESTIONS.DSA;
-    }
+    // Fetch authoritative questions with correct answers from DB
+    const dbQuestions = await Question.find({ q: { $in: questionTexts } });
 
-    const matched = clientQuestions.map(cq => serverBank.find(bq => bq.q === cq.q)).filter(Boolean);
+    // Match client questions against server-authoritative questions
+    const matched = clientQuestions.map(cq => {
+      // Find in DB first
+      const dbQ = dbQuestions.find(bq => bq.q === cq.q);
+      if (dbQ) return dbQ;
+      
+      // Fallback in case DB is not seeded or question was from old fallback
+      const fbBank = FALLBACK_QUESTIONS[subject] || FALLBACK_QUESTIONS.DSA;
+      return fbBank.find(bq => bq.q === cq.q);
+    }).filter(Boolean);
 
     const correct = answers.filter((a, i) => matched[i] && a === matched[i].ans).length;
     const total = matched.length || answers.length || 1;

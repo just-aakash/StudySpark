@@ -543,7 +543,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               {/* STAT CARDS */}
               <div className="g4">
                 {[
-                  { label: "Overall Progress", val: `${risk}%`, sub: "5 subjects", color: "var(--accent)" },
+                  { label: "Overall Progress", val: `${risk}%`, sub: `${roadmapProgress?.length || enrolledCourses?.length || 0} subjects`, color: "var(--accent)" },
                   { label: "Tasks Today", val: `${doneTasks}/${totalTasks}`, sub: "Completed", color: "var(--accent3)" },
                   { label: "Streak", val: `${streak} days`, sub: "Keep it up!", color: "var(--accent4)" },
                   { label: "Risk Level", val: riskLabel, sub: "Status", color: riskColor },

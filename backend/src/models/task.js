@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const taskSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, enum: ['topic', 'practice', 'revision'], default: 'topic' },
+  type: { type: String, enum: ['topic', 'practice', 'revision', 'checkpoint'], default: 'topic' },
   text: { type: String, required: true },
   subject: { type: String, required: true },
   time: { type: String, default: '9:00 AM' },
