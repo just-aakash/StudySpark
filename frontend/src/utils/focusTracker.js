@@ -13,6 +13,7 @@ class FocusTracker {
       this.score = Math.max(this.score - 5, 0);
     }
   }
+  ///uu
 
   start() {
     if (this.isTracking) return;
