@@ -1,4 +1,4 @@
-import { generateText, generateChat } from '../services/geminiService.js';
+import { generateText, generateChat, generateJSON } from '../services/geminiService.js';
 import User from '../models/user.js';
 import Roadmap from '../models/roadmap.js';
 import Checkpoint from '../models/checkpoint.js';
@@ -25,10 +25,10 @@ export const getStudyAdvice = async (req, res) => {
         Roadmap.findOne({ userId }),
       ]);
       const weakSubjects = roadmap?.progress?.filter(p => p.pct < 60).map(p => p.subject) || [];
-      return res.json({ 
-        advice: cached.response, 
+      return res.json({
+        advice: cached.response,
         stats: { streak: user?.streak || 0, weakSubjects },
-        fromCache: true 
+        fromCache: true
       });
     }
 
@@ -66,7 +66,7 @@ Keep the tone like a friendly mentor, not a textbook.
     let advice;
     try {
       advice = await generateText(prompt, { temperature: 0.85 });
-      
+
       // 2. Save to Cache
       await AICache.create({
         cacheKey,
@@ -75,12 +75,8 @@ Keep the tone like a friendly mentor, not a textbook.
         userId
       });
     } catch (err) {
-      if (err.message === 'AI_QUOTA_EXCEEDED') {
-        console.warn('[AI Advice] Quota exceeded, using fallback');
-        advice = `Hey ${user.fname}! You're doing great with a ${user.streak}-day streak. Keep pushing forward! Even without AI advice today, remember that consistency is key. Focus on your ${weakSubjects[0] || 'core subjects'} and stay sharp!`;
-      } else {
-        throw err;
-      }
+      console.warn(`[AI Advice] Failed (${err.message}), using fallback...`);
+      advice = `Hey ${user.fname}! You're doing great with a ${user.streak}-day streak. Keep pushing forward! Even without AI advice today, remember that consistency is key. Focus on your ${weakSubjects[0] || 'core subjects'} and stay sharp!`;
     }
 
     res.json({ advice: advice.trim(), stats: { avgScore, streak: user.streak, weakSubjects } });
@@ -128,7 +124,7 @@ Be concise, accurate, and student-friendly.
     let explanation;
     try {
       explanation = await generateText(prompt, { temperature: 0.6 });
-      
+
       // 2. Save to Cache
       await AICache.create({
         cacheKey,
@@ -136,11 +132,8 @@ Be concise, accurate, and student-friendly.
         category: 'explanation'
       });
     } catch (err) {
-      if (err.message === 'AI_QUOTA_EXCEEDED') {
-        explanation = `I'm currently resting my AI brain! But basically, ${topic} is a core concept in ${subject || 'CS'}. It deals with organizing and processing information efficiently. For a detailed breakdown, please try again in a little while!`;
-      } else {
-        throw err;
-      }
+      console.warn(`[AI Explain] Failed (${err.message}), using fallback...`);
+      explanation = `I'm currently resting my AI brain! But basically, ${topic} is a core concept in ${subject || 'CS'}. It deals with organizing and processing information efficiently. For a detailed breakdown, please try again in a little while!`;
     }
 
     res.json({ topic, subject, explanation: explanation.trim() });
@@ -181,7 +174,7 @@ export const getStudyPlan = async (req, res) => {
 You are an AI academic planner. Create a concise 7-day study plan for a CS student.
 
 Student context:
-- Enrolled subjects: ${(user.enrolledCourses || []).join(', ') || 'DSA, OS, DBMS'}
+- Enrolled subjects: ${(user.enrolledCourses || []).join(', ') || ''}
 - Currently studying: ${currentNodes.join(', ') || 'starting fresh'}
 - Weak areas: ${weakSubjects.join(', ') || 'none identified'}
 - Risk level: ${user.riskLevel}
@@ -201,9 +194,7 @@ Return a JSON object (no markdown) with this structure:
     let plan;
 
     try {
-      planData = await generateText(prompt, { temperature: 0.5 });
-      const cleaned = planData.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
-      plan = JSON.parse(cleaned);
+      plan = await generateJSON(prompt, { temperature: 0.5 });
 
       // 2. Save to Cache
       await AICache.create({
@@ -213,23 +204,19 @@ Return a JSON object (no markdown) with this structure:
         userId
       });
     } catch (err) {
-      if (err.message === 'AI_QUOTA_EXCEEDED') {
-        console.warn('[AI Study Plan] Quota exceeded, using static fallback');
-        plan = {
-          plan: [
-            { day: "Monday", tasks: ["Review core concepts", "Practice 1 coding problem"] },
-            { day: "Tuesday", tasks: ["Focus on weak topics", "Read documentation"] },
-            { day: "Wednesday", tasks: ["Take a mock checkpoint", "Rest & Review"] },
-            { day: "Thursday", tasks: ["Study DBMS/OS basics", "Review logic"] },
-            { day: "Friday", tasks: ["Apply theory to code", "Group study session"] },
-            { day: "Saturday", tasks: ["Weekly revision", "Solve previous errors"] },
-            { day: "Sunday", tasks: ["Weekly Wrap-up", "Prepare for next week"] }
-          ],
-          focus_tip: "Consistency is better than intensity. Keep your streak alive!"
-        };
-      } else {
-        throw err;
-      }
+      console.warn(`[AI Study Plan] Failed (${err.message}), using static fallback...`);
+      plan = {
+        plan: [
+          { day: "Monday", tasks: ["Review core concepts", "Practice 1 coding problem"] },
+          { day: "Tuesday", tasks: ["Focus on weak topics", "Read documentation"] },
+          { day: "Wednesday", tasks: ["Take a mock checkpoint", "Rest & Review"] },
+          { day: "Thursday", tasks: ["Study DBMS/OS basics", "Review logic"] },
+          { day: "Friday", tasks: ["Apply theory to code", "Group study session"] },
+          { day: "Saturday", tasks: ["Weekly revision", "Solve previous errors"] },
+          { day: "Sunday", tasks: ["Weekly Wrap-up", "Prepare for next week"] }
+        ],
+        focus_tip: "Consistency is better than intensity. Keep your streak alive!"
+      };
     }
 
     res.json(plan);
@@ -254,7 +241,7 @@ export const chatWithAI = async (req, res) => {
     }
 
     const user = await User.findById(userId).select('fname enrolledCourses');
-    
+
     // Provide system context
     const systemPromptMessage = {
       role: 'user',
@@ -267,12 +254,15 @@ export const chatWithAI = async (req, res) => {
     };
 
     const fullHistory = [systemPromptMessage, aiAcknowledgeMessage, ...messages];
-    
+
     const reply = await generateChat(fullHistory, { temperature: 0.7 });
 
     res.json({ reply: reply.trim() });
   } catch (error) {
     console.error('[AI Chat] Error:', error.message);
+    if (error.message === 'AI_QUOTA_EXCEEDED') {
+      return res.json({ reply: "I'm currently resting my AI brain due to high demand (Quota Exceeded)! Please try again in a little while. ⚡" });
+    }
     res.status(500).json({ message: 'Could not get response from AI Chat.' });
   }
 };

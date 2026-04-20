@@ -9,6 +9,12 @@ const SUBJECT_COLORS = {
   Algorithms: '#6366f1',
 };
 
+// Generates a random vibrant color for custom topics
+function generateVibrantColor() {
+  const h = Math.floor(Math.random() * 360);
+  return `hsl(${h}, 80%, 60%)`;
+}
+
 const SUBJECT_FALLBACK = {
   DSA: [
     { day: 'Day 1–3',   topic: 'Arrays & Strings' },
@@ -64,7 +70,7 @@ const SUBJECT_FALLBACK = {
  * @returns {Promise<{nodes: Array, color: string}>}
  */
 export async function generateAIRoadmap(subject, userCtx = {}) {
-  const color = SUBJECT_COLORS[subject] || '#00d4aa';
+  const color = SUBJECT_COLORS[subject] || generateVibrantColor();
 
   // If no Gemini key, skip straight to fallback
   if (!process.env.GEMINI_API_KEY) {
@@ -106,6 +112,7 @@ Rules:
       topic:  n.topic,
       status: i === 0 ? 'current' : 'pending',
       color,
+      subject, // Store the subject inside the node for filtering
     }));
 
     console.log(`[AI Roadmap] SUCCESS: Generated ${nodes.length} nodes for ${subject}`);
@@ -132,6 +139,7 @@ function buildFallback(subject, color) {
     topic:  n.topic,
     status: i === 0 ? 'current' : 'pending',
     color,
+    subject,
   }));
   return { nodes, color };
 }

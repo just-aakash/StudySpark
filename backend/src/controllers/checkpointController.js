@@ -97,7 +97,7 @@ export const submitCheckpoint = async (req, res) => {
     const avgScore = allSessions.length > 0
       ? Math.round(allSessions.reduce((a, s) => a + s.score, 0) / allSessions.length)
       : pct;
-    const riskLevel = avgScore >= 70 ? 'Low' : avgScore >= 50 ? 'Moderate' : 'High';
+    const riskLevel = avgScore >= 70 ? 'low' : avgScore >= 50 ? 'medium' : 'high';
 
     // Badge logic — award "Top Scorer" if score >= 80
     const user = await User.findById(req.user._id);

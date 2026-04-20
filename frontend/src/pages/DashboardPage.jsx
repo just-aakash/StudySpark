@@ -7,19 +7,14 @@ import checkpointService from "../services/checkpointService";
 import roadmapService from "../services/roadmapService";
 import aiService from "../services/aiService";
 import courseService from "../services/courseService";
+import api from "../services/api";
 import logo from "../assets/logo.png";
 import Modal from "../components/Modal";
 import AIChatBot from "../components/AIChatBot";
 import focusTracker from "../utils/focusTracker";
 
 // ── Default/fallback data shown while real data loads ──────────
-const DEFAULT_ROADMAP_PROGRESS = [
-  { topic: "Data Structures", pct: 0, done: 0, total: 8, color: "#00d4aa" },
-  { topic: "Algorithms", pct: 0, done: 0, total: 7, color: "#6366f1" },
-  { topic: "DBMS", pct: 0, done: 0, total: 6, color: "#f59e0b" },
-  { topic: "Operating Systems", pct: 0, done: 0, total: 7, color: "#ef4444" },
-  { topic: "Computer Networks", pct: 0, done: 0, total: 6, color: "#a855f7" },
-];
+const DEFAULT_ROADMAP_PROGRESS = [];
 
 const DEFAULT_USER = {
   name: "Student", email: "", roll: "", branch: "CSE", sem: "4th", av: "S",
@@ -27,7 +22,7 @@ const DEFAULT_USER = {
 
 // Helper: map backend roadmap progress to UI format
 function mapProgress(progress) {
-  if (!progress || !progress.length) return DEFAULT_ROADMAP_PROGRESS;
+  if (!progress || !progress.length) return [];
   return progress.map(p => ({
     topic: p.subject,
     pct: p.pct,
@@ -55,7 +50,7 @@ function mapCpScores(history) {
   return history.map(h => {
     const d = new Date(h.createdAt);
     const label = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric' });
-    return { week: h.week, label: h.label || label, s: h.score };
+    return { week: h.week, label: h.label || label, s: h.score, subject: h.subject };
   });
 }
 
@@ -116,7 +111,9 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
   // ── Checkpoint test state ────────────────────────────────────
   const [testQuestions, setTestQuestions] = useState([]);
-  const [testSubject, setTestSubject] = useState("DSA");
+  const [testSubject, setTestSubject] = useState("");
+  const [roadmapSubject, setRoadmapSubject] = useState("");
+  const [customTopic, setCustomTopic] = useState("");
   const [testState, setTestState] = useState({ started: false, q: 0, answers: [], score: null, correct: 0, total: 0, submitting: false, feedback: null });
   const [testLoading, setTestLoading] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -263,11 +260,13 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   const searchItems = SIDEBAR.filter(s => s.id && s.label.toLowerCase().includes(search.toLowerCase()));
 
   /* ── CHECKPOINT TEST LOGIC (live) ──────────────────────── */
-  const startTest = async () => {
+  const startTest = async (subjectOverride) => {
+    const subject = subjectOverride || testSubject;
+    if (subjectOverride) setTestSubject(subjectOverride);
     setTestLoading(true);
     setSelectedAnswer(null);
     try {
-      const data = await checkpointService.getQuestions(testSubject);
+      const data = await checkpointService.getQuestions(subject);
       setTestQuestions(data.questions || []);
       setTestState({ started: true, q: 0, answers: [], score: null, correct: 0, total: data.questions?.length || 5, submitting: false, feedback: null });
     } catch (err) {
@@ -321,11 +320,15 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
   /* ── ROADMAP GENERATION logic ───────────────────────────── */
   const handleGenerateRoadmap = async () => {
+    const subjectToGen = customTopic.trim() || roadmapSubject;
+    if (!subjectToGen) return;
+
     setGeneratingRoadmap(true);
     try {
-      // Ask backend to generate a personalized roadmap for these core subjects
-      const subjectsToGenerate = ["DSA", "Algorithms", "OS", "DBMS", "CN"];
-      await roadmapService.generateRoadmap(subjectsToGenerate);
+      // Ask backend to generate a personalized roadmap for ONLY the selected subject
+      await roadmapService.generateRoadmap([subjectToGen]);
+      setCustomTopic(""); // clear input after generation
+      if (customTopic.trim()) setRoadmapSubject(customTopic.trim());
       await fetchDashboardData(); // Re-fetch dashboard data to show the new roadmap
     } catch (err) {
       console.error("Failed to generate roadmap:", err);
@@ -447,7 +450,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                 <>
                   <div style={{ marginLeft: 10, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', overflow: 'hidden', flex: 1 }}>
                     <span className="profile-name" style={{ fontSize: 13, fontWeight: 700, margin: 0, textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', width: '100%', textAlign: 'left' }}>{liveUser.name}</span>
-                    <span style={{ fontSize: 10, color: "var(--accent)", textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', width: '100%', textAlign: 'left', fontWeight: 600 }}>{liveUser.roll || 'Student'}</span>
+                    <span style={{ fontSize: 10, color: "var(--accent)", textOverflow: 'ellipsis', whiteSpace: 'nowrap', overflow: 'hidden', width: '100%', textAlign: 'left', fontWeight: 600 }}>{liveUser.branch && liveUser.sem ? `${liveUser.branch} · Sem ${liveUser.sem}` : liveUser.roll || liveUser.education || 'Student'}</span>
                   </div>
                   <span style={{ fontSize: 18, color: "var(--muted)", alignSelf: 'center', marginLeft: 4, lineHeight: 1 }}>▴</span>
                 </>
@@ -778,7 +781,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                       <div key={i} style={{ background: "var(--surface2)", borderRadius: 12, padding: "14px 16px", marginBottom: 12 }}>
                         <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>Checkpoint {week}</div>
                         <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 8 }}>Score: {c.s}%</div>
-                        <button className="btn-primary" style={{ marginTop: 8, width: "100%", padding: "9px", fontSize: 13 }} onClick={() => { setTestSubject("DSA"); startTest(); }}>Retake →</button>
+                        <button className="btn-primary" style={{ marginTop: 8, width: "100%", padding: "9px", fontSize: 13 }} onClick={() => { setActive("checkpoint"); startTest(c.subject); }}>Retake →</button>
                       </div>
                     ))
                   ] : (
@@ -810,17 +813,36 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   <div className="page-h">Study Roadmap</div>
                   <div className="page-sub">Your personalized learning path — zigzag through each milestone.</div>
                 </div>
-                <button
-                  className="btn-primary"
-                  style={{ padding: "10px 16px", fontSize: 13, background: "linear-gradient(135deg, var(--accent) 0%, var(--accent3) 100%)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 8 }}
-                  onClick={handleGenerateRoadmap}
-                  disabled={generatingRoadmap}
-                >
-                  {generatingRoadmap ? "⏳ Generating..." : "✨ Generate AI Roadmap"}
-                </button>
+                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                  <input
+                    type="text"
+                    placeholder="Enter custom topic..."
+                    value={customTopic}
+                    onChange={(e) => setCustomTopic(e.target.value)}
+                    style={{ padding: "10px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: 13, width: 180 }}
+                  />
+                  <button
+                    className="btn-primary"
+                    style={{ padding: "10px 16px", fontSize: 13, background: "linear-gradient(135deg, var(--accent) 0%, var(--accent3) 100%)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 8 }}
+                    onClick={handleGenerateRoadmap}
+                    disabled={generatingRoadmap}
+                  >
+                    {generatingRoadmap ? "⏳ Generating..." : `✨ Generate ${customTopic.trim() ? customTopic : roadmapSubject} Roadmap`}
+                  </button>
+                </div>
               </div>
+
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 24, justifyContent: "center" }}>
+                {[...new Set(enrolledCourses)].map(s => (
+                  <button key={s} onClick={() => { setRoadmapSubject(s); setCustomTopic(""); }}
+                    style={{ padding: "7px 16px", borderRadius: 8, border: `1.5px solid ${roadmapSubject === s ? "var(--accent)" : "var(--border)"}`, background: roadmapSubject === s ? "rgba(0,212,170,0.1)" : "var(--surface2)", color: roadmapSubject === s ? "var(--accent)" : "var(--text)", fontWeight: roadmapSubject === s ? 700 : 400, cursor: "pointer", fontSize: 13 }}>
+                    {s}
+                  </button>
+                ))}
+              </div>
+
               <div style={{ maxWidth: 700, margin: "0 auto", position: "relative" }}>
-                {roadPath.length > 0 ? roadPath.map((node, i) => (
+                {roadPath.length > 0 ? roadPath.filter(n => n.subject === roadmapSubject || !n.subject).map((node, i, filteredNodes) => (
                   <div key={i} style={{ position: "relative" }}>
                     <div className="road-node" style={{ flexDirection: i % 2 === 0 ? "row" : "row-reverse", marginBottom: 0, alignItems: "center" }}>
                       <div style={{ flex: 1 }} />
@@ -828,7 +850,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                         <div className="road-circle" style={{ borderColor: node.color, background: node.status === "done" ? node.color + "22" : node.status === "current" ? node.color + "15" : "transparent", animation: node.status === "current" ? "glow 2s infinite" : "none" }}>
                           <span style={{ fontSize: 22 }}>{node.icon}</span>
                         </div>
-                        {i < roadPath.length - 1 && (
+                        {i < filteredNodes.length - 1 && (
                           <div style={{ width: 3, height: 60, background: node.status === "done" ? node.color : "var(--border)", transition: "background 0.3s" }} />
                         )}
                       </div>
@@ -859,14 +881,14 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   <div className="wg" style={{ marginBottom: 16 }}>
                     <div style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Select Subject & Start Test</div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-                      {["DSA", "OS", "DBMS", "CN", "Algorithms"].map(s => (
+                      {[...new Set(enrolledCourses)].map(s => (
                         <button key={s} onClick={() => setTestSubject(s)}
                           style={{ padding: "7px 16px", borderRadius: 8, border: `1.5px solid ${testSubject === s ? "var(--accent)" : "var(--border)"}`, background: testSubject === s ? "rgba(0,212,170,0.1)" : "var(--surface2)", color: testSubject === s ? "var(--accent)" : "var(--text)", fontWeight: testSubject === s ? 700 : 400, cursor: "pointer", fontSize: 13 }}>
                           {s}
                         </button>
                       ))}
                     </div>
-                    <button className="btn-primary" style={{ width: "100%", padding: "11px", fontSize: 14 }} onClick={startTest} disabled={testLoading}>
+                    <button className="btn-primary" style={{ width: "100%", padding: "11px", fontSize: 14 }} onClick={() => startTest()} disabled={testLoading}>
                       {testLoading ? "Loading questions..." : `Start ${testSubject} Test →`}
                     </button>
                   </div>
@@ -1146,7 +1168,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
           {/* ── AI STUDY PLAN ── */}
           {active === "aistudyplan" && (
-            <AiStudyPlanPage liveUser={liveUser} weakTopics={weakTopics} streak={streak} enrolledCourses={roadmapProgress.map(r => r.topic)} />
+            <AiStudyPlanPage liveUser={liveUser} weakTopics={weakTopics} streak={streak} enrolledCourses={enrolledCourses} />
           )}
 
           {/* ── ABOUT US ── */}
@@ -1183,20 +1205,47 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
                 <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: 28 }}>
                   <h3 style={{ fontFamily: "var(--display)", fontSize: 17, fontWeight: 700, marginBottom: 20 }}>Send a Message</h3>
-                  {[["Name", "text", "Your name"], ["Email", "email", "your@email.com"], ["Subject", "text", "How can we help?"]].map(([l, t, ph]) => (
+                  {[["Name", "text", "Your name", "contact-name"], ["Email", "email", "your@email.com", "contact-email"], ["Subject", "text", "How can we help?", "contact-subject"]].map(([l, t, ph, id]) => (
                     <div key={l} style={{ marginBottom: 14 }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{l}</div>
-                      <input type={t} placeholder={ph} className="input-field" />
+                      <input type={t} id={id} placeholder={ph} className="input-field" />
                     </div>
                   ))}
                   <div style={{ marginBottom: 14 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>Message</div>
-                    <textarea className="input-field" rows={5} placeholder="Your message..." style={{ resize: "vertical" }} />
+                    <textarea id="contact-message" className="input-field" rows={5} placeholder="Your message..." style={{ resize: "vertical" }} />
                   </div>
-                  <button className="btn-primary" style={{ width: "100%", padding: "12px", fontSize: 15 }} onClick={() => alert("Message sent successfully! We will get back to you soon.")}>Send Message →</button>
+                  <button id="contact-btn" className="btn-primary" style={{ width: "100%", padding: "12px", fontSize: 15 }} onClick={async () => {
+                    const btn = document.getElementById('contact-btn');
+                    const name = document.getElementById('contact-name').value;
+                    const email = document.getElementById('contact-email').value;
+                    const subject = document.getElementById('contact-subject').value;
+                    const message = document.getElementById('contact-message').value;
+
+                    if (!name || !email || !subject || !message) {
+                      return alert("Please fill all fields.");
+                    }
+
+                    btn.innerText = "Sending...";
+                    btn.disabled = true;
+
+                    try {
+                      await api.post('/contact', { name, email, subject, message });
+                      alert("Message sent successfully! We will get back to you soon.");
+                      document.getElementById('contact-name').value = '';
+                      document.getElementById('contact-email').value = '';
+                      document.getElementById('contact-subject').value = '';
+                      document.getElementById('contact-message').value = '';
+                    } catch (e) {
+                      alert("Failed to send message. Please try again.");
+                    } finally {
+                      btn.innerText = "Send Message →";
+                      btn.disabled = false;
+                    }
+                  }}>Send Message →</button>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {[["📍", "Address", "GLA University, Mathura, UP 281406"], ["📧", "Email", "studyspark@gla.ac.in"], ["🎓", "Team", "StudySpark: AI Habit Forge"]].map(([ic, l, v]) => (
+                  {[["📍", "Address", "GLA University, Mathura, UP 281406"], ["📧", "Email", "tyagiidhruv5@gmail.com"], ["🎓", "Team", "StudySpark: AI Habit Forge"]].map(([ic, l, v]) => (
                     <div key={l} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "16px 18px", display: "flex", gap: 14, alignItems: "center" }}>
                       <span style={{ fontSize: 22 }}>{ic}</span>
                       <div><div style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>{l}</div><div style={{ fontSize: 14, fontWeight: 600, marginTop: 2 }}>{v}</div></div>
