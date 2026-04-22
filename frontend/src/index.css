@@ -561,3 +561,29 @@ a {
 .course-footer { max-width: 1100px; margin: 36px auto 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
 .sel-count { font-size: 14px; color: var(--muted); }
 .sel-count span { color: var(--accent); font-weight: 700; }
+
+/* --- Responsive Utilities --- */
+.flex-resp { display: flex; flex-direction: row; gap: 16px; }
+.grid-resp { display: grid; gap: 20px; }
+
+@media (max-width: 1024px) {
+  .course-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+}
+
+@media (max-width: 768px) {
+  .flex-resp { flex-direction: column; }
+  .grid-resp { grid-template-columns: 1fr !important; }
+  
+  .course-page { padding: 60px 20px; }
+  .course-footer { flex-direction: column; text-align: center; }
+  
+  .modal-box { padding: 24px; }
+  
+  /* Prevent horizontal overflow on small screens */
+  body { overflow-x: hidden; width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .section-tag { font-size: 10px; letter-spacing: 1px; }
+  .page-h { font-size: 1.5rem !important; }
+}

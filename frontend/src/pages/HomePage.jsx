@@ -19,7 +19,7 @@ export default function HomePage() {
   const [typed, setTyped] = useState("");
   const phrases = ["Build Study Habits.", "Track Every Milestone.", "Crush Your Exams.", "Stay Consistent."];
   const [pIdx, setPIdx] = useState(0); const [cIdx, setCIdx] = useState(0); const [del, setDel] = useState(false);
- 
+
   useEffect(() => { const h = () => setScrolled(window.scrollY > 30); window.addEventListener("scroll", h); return () => window.removeEventListener("scroll", h); }, []);
   useEffect(() => {
     const t = setTimeout(() => {
@@ -29,15 +29,15 @@ export default function HomePage() {
     }, del ? 35 : 75);
     return () => clearTimeout(t);
   }, [typed, del, cIdx, pIdx]);
- 
+
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
- 
+
   const BLOGS = [
     { id: 1, icon: "🧠", tag: "Research", title: "The Science of Checkpoint-Based Learning", excerpt: "Spaced repetition and active recall at predefined checkpoints dramatically improve long-term retention compared to passive reading.", author: "Akash Tiwari", date: "Mar 10, 2025", read: "5 min", bg: "linear-gradient(135deg,#001a14,#002a20)", content: "Checkpoint assessments force active recall — one of the most powerful learning strategies. Rather than passive re-reading, students who regularly test themselves at structured intervals retain 40–60% more information. StudySpark builds this into the system automatically, ensuring every study cycle ends with a meaningful evaluation." },
     { id: 2, icon: "🔥", tag: "Habits", title: "Why 93% of Students Abandon Study Plans", excerpt: "Research reveals that without continuous feedback loops, even the best study plans collapse within 2 weeks. Here's how to fix that.", author: "Akash Tiwari", date: "Mar 5, 2025", read: "4 min", bg: "linear-gradient(135deg,#1a0d00,#2a1500)", content: "The key to lasting study habits isn't willpower — it's feedback. When students don't see measurable progress, motivation evaporates. StudySpark's streak system, checkpoint scores, and adaptive roadmap adjustments create a continuous feedback loop that keeps learners on track, week after week." },
     { id: 3, icon: "🤖", tag: "AI & Learning", title: "How AI Prevents Academic Failure Before It Happens", excerpt: "Instead of reacting after exam failure, preventive AI systems like StudySpark intervene weeks before the damage is done.", author: "Lakshay Sharma", date: "Feb 28, 2025", read: "6 min", bg: "linear-gradient(135deg,#0a0018,#130028)", content: "Traditional platforms are curative — they respond after poor exam results. StudySpark is preventive. By monitoring roadmap adherence, running weekly conceptual checkpoints, and applying decision-tree logic to reroute study plans, the system catches academic drift before it becomes academic failure." },
   ];
- 
+
   const TEAM = [
     { name: "Akash Tiwari", role: "UI/UX & Frontend Dev", av: "AT", col: "#00d4aa" },
     { name: "Akash Foujdar", role: "Backend", av: "AF", col: "#6366f1" },
@@ -45,7 +45,7 @@ export default function HomePage() {
     { name: "Dhruv Tyagi", role: "Backend & API", av: "DT", col: "#ef4444" },
     { name: "Jayant Kumar", role: "Database", av: "JK", col: "#a855f7" },
   ];
- 
+
   const FEATS = [
     { icon: "🗺️", title: "Adaptive Roadmaps", desc: "Structured subject roadmaps divided into milestone checkpoints. AI reshapes the plan based on your checkpoint performance." },
     { icon: "📋", title: "Checkpoint Evaluation", desc: "Weekly interview-type conceptual questions + application problems to measure deep understanding, not just memorization." },
@@ -54,10 +54,10 @@ export default function HomePage() {
     { icon: "🔥", title: "Streak & Badges", desc: "Daily login streaks, study badges, and a consistency tracker that gamifies your academic progress." },
     { icon: "⚠️", title: "Early Risk Detection", desc: "Risk level indicators alert you before performance decline reaches critical levels. Prevention over cure." },
   ];
- 
+
   return (
     <div>
- 
+
       {/* NAVBAR */}
       <nav className={`hn ${scrolled ? "scrolled" : ""}`}>
         <div className="hn-logo">
@@ -65,7 +65,7 @@ export default function HomePage() {
           <span className="hn-logo-name">StudySpark</span>
         </div>
         <ul className="hn-links">
-          {[["Features","features"],["Blog","blog"],["About Us","about"],["Contact","contact"]].map(([l,id]) => (
+          {[["Features", "features"], ["Blog", "blog"], ["About Us", "about"], ["Contact", "contact"]].map(([l, id]) => (
             <li key={id}><a onClick={() => scrollTo(id)}>{l}</a></li>
           ))}
         </ul>
@@ -76,7 +76,7 @@ export default function HomePage() {
           <button className="btn-primary hn-reg" onClick={() => navigate("/register")}>Register</button>
         </div>
       </nav>
- 
+
       {/* HERO */}
       <section className="hero" id="home">
         <div className="hero-bg">
@@ -95,22 +95,22 @@ export default function HomePage() {
             <button className="btn-outline h-cta2" onClick={() => scrollTo("features")}>See Features ↓</button>
           </div>
           <div className="hero-stats">
-            {[["500+","Students Enrolled"],["92%","Grade Improvement"],["4.8★","User Rating"],["3x","Faster Progress"]].map(([n,l]) => (
+            {[["500+", "Students Enrolled"], ["92%", "Grade Improvement"], ["4.8★", "User Rating"], ["3x", "Faster Progress"]].map(([n, l]) => (
               <div className="hstat" key={l}><div className="hstat-num">{n}</div><div className="hstat-lbl">{l}</div></div>
             ))}
           </div>
         </div>
       </section>
- 
+
       {/* MARQUEE */}
       <div className="marquee-wrap">
         <div className="marquee-inner">
-          {["Roadmap Tracking","Checkpoint Evaluation","AI Decision Engine","Streak System","Weak Topic Heatmap","Performance Analytics","Risk Indicators","Adaptive Routines","Roadmap Tracking","Checkpoint Evaluation","AI Decision Engine","Streak System","Weak Topic Heatmap","Performance Analytics","Risk Indicators","Adaptive Routines"].map((t, i) => (
+          {["Roadmap Tracking", "Checkpoint Evaluation", "AI Decision Engine", "Streak System", "Weak Topic Heatmap", "Performance Analytics", "Risk Indicators", "Adaptive Routines", "Roadmap Tracking", "Checkpoint Evaluation", "AI Decision Engine", "Streak System", "Weak Topic Heatmap", "Performance Analytics", "Risk Indicators", "Adaptive Routines"].map((t, i) => (
             <div className="marquee-item" key={i}><span style={{ color: "var(--accent)" }}>◆</span>{t}</div>
           ))}
         </div>
       </div>
- 
+
       {/* FEATURES */}
       <section className="section" id="features">
         <div className="section-tag">What We Offer</div>
@@ -134,7 +134,7 @@ export default function HomePage() {
           ))}
         </div>
       </section>
- 
+
       {/* BLOG */}
       <section className="section" id="blog" style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
         <div className="section-tag">Insights</div>
@@ -171,7 +171,7 @@ export default function HomePage() {
           ))}
         </div>
       </section>
- 
+
       {/* ABOUT US */}
       <section className="section" id="about">
         <div className="section-tag">The Team</div>
@@ -189,7 +189,7 @@ export default function HomePage() {
               transition={{ delay: i * 0.1 }}
             >
               <div className="team-av" style={{ background: m.col + "22", color: m.col }}>
-              {m.av}
+                {m.av}
               </div>
 
               <div className="team-name">{m.name}</div>
@@ -198,7 +198,7 @@ export default function HomePage() {
           ))}
         </div>
       </section>
- 
+
       {/* CONTACT */}
       <section className="section" id="contact" style={{ background: "var(--surface)", borderTop: "1px solid var(--border)" }}>
         <div className="section-tag">Get In Touch</div>
@@ -214,7 +214,7 @@ export default function HomePage() {
             ) : (
               <>
                 <div className="form-row">
-                  {[["Name","text","Your name"],["Email","email","your@email.com"]].map(([l,t,ph]) => (
+                  {[["Name", "text", "Your name"], ["Email", "email", "your@email.com"]].map(([l, t, ph]) => (
                     <div className="form-group" key={l}>
                       <label className="form-label">{l}</label>
                       <input className="input-field" type={t} placeholder={ph} value={contactForm[l.toLowerCase()]} onChange={e => setContactForm(p => ({ ...p, [l.toLowerCase()]: e.target.value }))} />
@@ -230,19 +230,19 @@ export default function HomePage() {
             )}
           </div>
           <div className="contact-info">
-            {[["📍","Location","GLA University, Mathura, UP 281406"],["📧","Email","akash.tiwari_cs24@gla.ac.in"],].map(([ic,l,v]) => (
+            {[["📍", "Location", "GLA University, Mathura, UP 281406"], ["📧", "Email", "akash.tiwari_cs24@gla.ac.in"],].map(([ic, l, v]) => (
               <div className="ci-card" key={l}><div className="ci-icon">{ic}</div><div><div className="ci-label">{l}</div><div className="ci-val">{v}</div></div></div>
             ))}
           </div>
         </div>
       </section>
- 
+
       <footer className="home-footer">
         <div style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 800, color: "var(--accent)", marginBottom: 8 }}><div className="home-footer-logo"><img src={logo} alt="StudySpark Logo" /></div>StudySpark</div>
-        <div style={{ color: "var(--muted)", fontSize: 14 }}>AI Habit Forge</div>
+        <div style={{ color: "var(--muted)", fontSize: 14 }}>AI Habit Forge(dt_0.1)</div>
         <div style={{ marginTop: 8, color: "var(--muted)", fontSize: 12 }}>Built with ❤️ by Akash, Akash, Lakshay, Dhruv & Jayant</div>
       </footer>
- 
+
       {blogModal && (
         <Modal title={blogModal.title} onClose={() => setBlogModal(null)}>
           <div style={{ fontSize: 48, marginBottom: 14 }}>{blogModal.icon}</div>

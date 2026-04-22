@@ -3,8 +3,6 @@
   .sidebar { width: var(--sw, 240px); background: var(--surface); border-right: 1px solid var(--border);
     display: flex; flex-direction: column; transition: width 0.25s ease; overflow: hidden; flex-shrink: 0; z-index: 50; }
   .sb-top { padding: 18px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; cursor: pointer; flex-shrink: 0; }
-  /* .sb-logo-box { width: 34px; height: 34px; background: linear-gradient(135deg,var(--accent),#00a87d); border-radius: 9px;
-    display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: #000; flex-shrink: 0; } */
   .sb-logo-name { font-family: var(--display); font-weight: 800; font-size: 17px;
     background: linear-gradient(90deg,var(--accent),var(--accent3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; }
   .sb-nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
@@ -21,10 +19,51 @@
   .sb-logout { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; cursor: pointer;
     color: var(--red); font-size: 13px; font-weight: 600; width: 100%; border: none; background: transparent; transition: background 0.2s; }
   .sb-logout:hover { background: rgba(239,68,68,0.08); }
+
+  @media (max-width: 768px) {
+    .sidebar { 
+      position: fixed; 
+      left: 0; 
+      top: 0; 
+      bottom: 0; 
+      width: 280px; 
+      transform: translateX(-100%); 
+      z-index: 2100; 
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .sidebar.open { 
+      transform: translateX(0); 
+    }
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 2050;
+      animation: fadeIn 0.3s ease;
+    }
+  }
+
   /* MAIN */
   .dash-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
   /* NAVBAR */
   .dash-nav { height: 58px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 14px; flex-shrink: 0; position: relative; }
+  
+  .dash-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    gap: 16px;
+  }
+  
+  @media (max-width: 768px) {
+    .dash-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
   .toggle-sb { background: var(--surface2); border: 1px solid var(--border); color: var(--text); width: 32px; height: 32px; border-radius: 8px; font-size: 15px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .search-box { flex: 1; position: relative; max-width: 400px; }
   .search-inp { width: 100%; background: var(--surface2); border: 1.5px solid var(--border); border-radius: 10px; padding: 8px 14px 8px 34px; color: var(--text); font-size: 14px; outline: none; transition: border 0.2s; }
@@ -75,13 +114,46 @@
   .road-content { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; margin: 0 20px 0 20px; transition: all 0.2s; cursor: pointer; }
   .road-content:hover { border-color: var(--accent); }
   .road-connector { position: absolute; width: 3px; background: var(--border); left: 50%; transform: translateX(-50%); }
-  @media(max-width:900px){ .g3{grid-template-columns:1fr 1fr} .g4{grid-template-columns:1fr 1fr} }
-  @media(max-width:600px){ .g2,.g3,.g4{grid-template-columns:1fr} .sidebar{position:absolute;height:100%;z-index:100} }
+
+  @media (max-width: 1024px) {
+    .g4 { grid-template-columns: repeat(2, 1fr); }
+    .dash-content { padding: 20px; }
+  }
+
+  @media (max-width: 768px) {
+    .g2, .g3, .g4 { grid-template-columns: 1fr; }
+    .dash-nav { padding: 0 16px; }
+    .search-box { max-width: none; flex: 1; }
+    .profile-name { display: none; }
+    .page-h { font-size: 1.25rem; }
+    .wg { padding: 24px; }
+    
+    .road-node, .road-node:nth-child(even) { 
+      flex-direction: row; 
+      margin-bottom: 16px;
+    }
+    .road-connector {
+      left: 22px;
+      transform: none;
+    }
+    .road-content {
+      margin-left: 16px;
+      margin-right: 0;
+      padding: 12px 16px;
+    }
+    .road-circle { width: 44px; height: 44px; font-size: 18px; }
+  }
+
+  @media (max-width: 480px) {
+    .dash-nav { gap: 8px; }
+    .toggle-sb { width: 36px; height: 36px; }
+    .dash-content { padding: 16px; }
+  }
   .sb-logo-img {
   width: 34px;
   height: 34px;
-  background: transparent;   /* 👈 remove bg */
-  border-radius: 50%;          /* optional */
+  background: transparent;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;

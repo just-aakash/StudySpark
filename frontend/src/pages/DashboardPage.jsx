@@ -420,9 +420,11 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
   return (
     <div className="dash-wrap">
+      {/* MOBILE SIDEBAR OVERLAY */}
+      {sbOpen && <div className="sidebar-overlay" onClick={() => setSbOpen(false)}></div>}
 
       {/* SIDEBAR */}
-      <aside className="sidebar" style={{ "--sw": sbOpen ? "240px" : "62px" }}>
+      <aside className={`sidebar ${sbOpen ? "open" : ""}`} style={{ "--sw": sbOpen ? "240px" : "62px" }}>
         <div className="sb-top" onClick={() => setSbOpen(s => !s)}>
           <div className="sb-logo-box">
             <img src={logo} alt="logo" className="sb-logo-img" />
@@ -521,9 +523,8 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
           {/* ── DASHBOARD HOME ── */}
           {active === "dashboard" && (
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
+              <div className="dash-header">
                 <div>
-                  {/* <div className="page-h">Dashboard 👋</div> */}
                   <div className="page-h" style={{
                     background: "linear-gradient(90deg, var(--text) 0%, var(--muted) 100%)",
                     WebkitBackgroundClip: "text",
@@ -569,7 +570,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
               {/* AI ADVICE CARD */}
               {(aiAdvice || aiLoading) && (
-                <div style={{ background: "linear-gradient(135deg, rgba(0,212,170,0.08), rgba(99,102,241,0.08))", border: "1px solid rgba(0,212,170,0.25)", borderRadius: 16, padding: "18px 22px", marginBottom: 20, display: "flex", gap: 14, alignItems: "flex-start" }}>
+                <div className="flex-resp" style={{ background: "linear-gradient(135deg, rgba(0,212,170,0.08), rgba(99,102,241,0.08))", border: "1px solid rgba(0,212,170,0.25)", borderRadius: 16, padding: "18px 22px", marginBottom: 20, alignItems: "flex-start" }}>
                   <div style={{ fontSize: 28, flexShrink: 0 }}>🤖</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 11, fontWeight: 800, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 6 }}>StudySpark AI</div>
