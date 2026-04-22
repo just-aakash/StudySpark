@@ -189,3 +189,27 @@ export const getLeaderboard = async (req, res) => {
   }
 };
 
+// ──────────────────────────────────────────────────────────────
+// @desc   Sync focus score and tab switches
+// @route  POST /api/users/sync-focus
+// @access Private
+// ──────────────────────────────────────────────────────────────
+export const syncFocus = async (req, res) => {
+  try {
+    const { score, switches } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      user.focusScore = score;
+      user.totalSwitches = switches;
+      await user.save({ validateBeforeSave: false });
+      res.json({ message: 'Focus synced', score: user.focusScore, switches: user.totalSwitches });
+    } else {
+      res.status(404).json({ message: 'User not found.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+

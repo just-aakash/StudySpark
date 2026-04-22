@@ -22,6 +22,8 @@ const userSchema = new mongoose.Schema({
   enrolledCourses: { type: [String], default: [] },
   checkpointScore: { type: Number, default: 0 },
   riskLevel: { type: String, enum: ['low', 'medium', 'high'], default: 'low' },
+  focusScore: { type: Number, default: 100 },
+  totalSwitches: { type: Number, default: 0 },
   
   resetPasswordToken: String,
   resetPasswordExpire: Date,

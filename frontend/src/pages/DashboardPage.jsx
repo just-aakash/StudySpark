@@ -95,21 +95,47 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   const [completionPct, setCompletionPct] = useState(0);
   const [stats, setStats] = useState({});
   const [focus, setFocus] = useState({
-  tabSwitches: 0,
-  score: 100
-});
+    tabSwitches: 0,
+    score: 100
+  });
+
+  // Update focus state when liveUser (backend data) loads
   useEffect(() => {
-  focusTracker.start();
+    if (liveUser && liveUser.focusScore !== undefined) {
+      setFocus({
+        tabSwitches: liveUser.totalSwitches || 0,
+        score: liveUser.focusScore
+      });
+      // Sync the internal tracker with backend values
+      focusTracker.tabSwitches = liveUser.totalSwitches || 0;
+      focusTracker.score = liveUser.focusScore;
+    }
+  }, [liveUser]);
 
- const interval = setInterval(() => {
-  setFocus(focusTracker.getData());
-}, 1000);
+  useEffect(() => {
+    focusTracker.start();
 
-  return () => {
-    focusTracker.stop();
-    clearInterval(interval);
-  };
-}, []);
+    const interval = setInterval(() => {
+      setFocus(focusTracker.getData());
+    }, 1000);
+
+    // Sync with backend every 2 minutes
+    const syncInterval = setInterval(async () => {
+      const data = focusTracker.getData();
+      try {
+        await authService.syncFocus(data.score, data.tabSwitches);
+      } catch (e) { console.error("Focus sync err", e); }
+    }, 120000);
+
+    return () => {
+      focusTracker.stop();
+      clearInterval(interval);
+      clearInterval(syncInterval);
+      // Final sync on leave
+      const data = focusTracker.getData();
+      authService.syncFocus(data.score, data.tabSwitches).catch(() => {});
+    };
+  }, []);
 
   // ── Checkpoint test state ────────────────────────────────────
   const [testQuestions, setTestQuestions] = useState([]);
@@ -194,6 +220,8 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
         skills: u.skills ? u.skills.join(", ") : "",
         about: u.about || "",
         profilePic: u.profilePic || null,
+        focusScore: u.focusScore ?? 100,
+        totalSwitches: u.totalSwitches ?? 0,
         av,
       });
 

@@ -44,6 +44,11 @@ const logout = () => {
   localStorage.removeItem('user');
   localStorage.removeItem('token');
 };
+// Sync focus data
+const syncFocus = async (score, switches) => {
+  const response = await api.post('/users/sync-focus', { score, switches });
+  return response.data;
+};
 
 const authService = {
   register,
@@ -52,6 +57,7 @@ const authService = {
   getProfile,
   updateProfile,
   getAnalytics,
+  syncFocus,
 };
 
 export default authService;
