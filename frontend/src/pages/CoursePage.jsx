@@ -1,5 +1,4 @@
 import { useState} from "react";
-import "../styles/course.css";
 import { useNavigate } from "react-router-dom";
 
 
