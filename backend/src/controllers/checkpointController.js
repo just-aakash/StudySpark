@@ -26,7 +26,7 @@ export const getCheckpointQuestions = async (req, res) => {
     const lastScore = lastSession?.score ?? null;
 
     // Generate via AI (with fallback)
-    const questions = await generateAIQuestions(subject, 5, { lastScore });
+    const questions = await generateAIQuestions(subject, 10, { lastScore });
 
     if (!questions.length) {
       return res.status(404).json({ message: 'No questions found for this subject.' });

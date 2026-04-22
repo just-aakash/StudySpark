@@ -20,6 +20,8 @@ const DEFAULT_USER = {
   name: "Student", email: "", roll: "", branch: "CSE", sem: "4th", av: "S",
 };
 
+const ALL_SUBJECTS = ["dsa", "os", "dbms", "cn", "webdev", "ml", "java", "python", "cloud"];
+
 // Helper: map backend roadmap progress to UI format
 function mapProgress(progress) {
   if (!progress || !progress.length) return [];
@@ -178,14 +180,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
       // User info
       const u = analytics.user || {};
-      const enrolled = u.enrolledCourses || [];
-      setEnrolledCourses(enrolled);
-
-      // Auto-select first course if none selected
-      if (enrolled.length > 0) {
-        setTestSubject(prev => prev || enrolled[0]);
-        setRoadmapSubject(prev => prev || enrolled[0]);
-      }
+      setEnrolledCourses(u.enrolledCourses || []);
       const fullName = `${u.fname || ""} ${u.lname || ""}`.trim() || "Student";
       const av = fullName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
       setLiveUser({
@@ -269,7 +264,6 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   /* ── CHECKPOINT TEST LOGIC (live) ──────────────────────── */
   const startTest = async (subjectOverride) => {
     const subject = subjectOverride || testSubject;
-    if (!subject) return alert("Please select a subject first.");
     if (subjectOverride) setTestSubject(subjectOverride);
     setTestLoading(true);
     setSelectedAnswer(null);
@@ -621,8 +615,8 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                 {/* CHECKPOINT SCORES */}
                 <div className="wg">
                   <div className="wg-title">Checkpoint Scores</div>
-                  {cpScores.map(c => (
-                    <div key={c.week} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  {cpScores.map((c, i) => (
+                    <div key={`${c.subject}-${c.week}-${i}`} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                       <span style={{ fontSize: 12, color: "var(--muted)", width: 24 }}>{c.week}</span>
                       <div className="bar-track" style={{ flex: 1 }}><div className="bar-fill" style={{ width: `${c.s}%`, background: c.s >= 70 ? "var(--green)" : c.s >= 50 ? "var(--yellow)" : "var(--red)" }} /></div>
                       <span style={{ fontSize: 12, fontWeight: 700, width: 30, textAlign: "right", color: c.s >= 70 ? "var(--green)" : c.s >= 50 ? "var(--yellow)" : "var(--red)" }}>{c.s}</span>
@@ -882,23 +876,22 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
           {active === "checkpoint" && (
             <div>
               <div className="page-h">Checkpoint Tests</div>
-              <div className="page-sub">AI-generated conceptual questions. Your score shapes your roadmap.</div>
+              <div className="page-sub">Conceptual questions for your selected subject. Your score shapes your roadmap.</div>
 
               {!testState.started ? (
                 <>
                   <div className="wg" style={{ marginBottom: 16 }}>
                     <div style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Select Subject & Start Test</div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-                      {[...new Set(enrolledCourses)].map(s => (
+                      {(enrolledCourses.length > 0 ? [...new Set(enrolledCourses)] : ALL_SUBJECTS).map(s => (
                         <button key={s} onClick={() => setTestSubject(s)}
-                          style={{ padding: "7px 16px", borderRadius: 8, border: `1.5px solid ${testSubject === s ? "var(--accent)" : "var(--border)"}`, background: testSubject === s ? "rgba(0,212,170,0.1)" : "var(--surface2)", color: testSubject === s ? "var(--accent)" : "var(--text)", fontWeight: testSubject === s ? 700 : 400, cursor: "pointer", fontSize: 13 }}>
+                          style={{ padding: "7px 16px", borderRadius: 8, border: `1.5px solid ${testSubject === s ? "var(--accent)" : "var(--border)"}`, background: testSubject === s ? "rgba(0,212,170,0.1)" : "var(--surface2)", color: testSubject === s ? "var(--accent)" : "var(--text)", fontWeight: testSubject === s ? 700 : 400, cursor: "pointer", fontSize: 13, textTransform: "uppercase" }}>
                           {s}
                         </button>
                       ))}
                     </div>
-                    <button className="btn-primary" style={{ width: "100%", padding: "11px", fontSize: 14, opacity: !testSubject ? 0.6 : 1 }} 
-                      onClick={() => startTest()} disabled={testLoading || !testSubject}>
-                      {testLoading ? "Loading questions..." : testSubject ? `Start ${testSubject} Test →` : "Select a subject above"}
+                    <button className="btn-primary" style={{ width: "100%", padding: "11px", fontSize: 14 }} onClick={() => startTest()} disabled={testLoading || !testSubject}>
+                      {testLoading ? "Loading questions..." : !testSubject ? "Select a subject above" : `Start ${testSubject} Test →`}
                     </button>
                   </div>
                   <div className="page-h" style={{ fontSize: 14, marginBottom: 12 }}>Past Results</div>
@@ -914,8 +907,8 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               ) : testState.submitting ? (
                 <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center", padding: "60px 0" }}>
                   <div style={{ fontSize: 48, marginBottom: 16, animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</div>
-                  <div style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--accent)" }}>Submitting your answers...</div>
-                  <div style={{ fontSize: 14, color: "var(--muted)", marginTop: 8 }}>Calculating your score with AI verification</div>
+                   <div style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--accent)" }}>Submitting your answers...</div>
+                  <div style={{ fontSize: 14, color: "var(--muted)", marginTop: 8 }}>Calculating your results...</div>
                 </div>
               ) : testState.score !== null ? (
                 <div style={{ maxWidth: 600, margin: "0 auto", padding: "32px 0" }}>

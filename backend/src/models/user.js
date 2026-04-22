@@ -22,6 +22,11 @@ const userSchema = new mongoose.Schema({
   enrolledCourses: { type: [String], default: [] },
   checkpointScore: { type: Number, default: 0 },
   riskLevel: { type: String, enum: ['low', 'medium', 'high'], default: 'low' },
+  
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
+  otp: String,
+  otpExpire: Date,
 }, { timestamps: true });
 
 // Hash password before saving
@@ -57,34 +62,7 @@ userSchema.methods.getResetPasswordToken = function () {
   return resetToken;
 };
 
-export const resetPassword = async (req, res) => {
-  try {
-    const hashedToken = crypto
-      .createHash('sha256')
-      .update(req.params.token)
-      .digest('hex');
 
-    const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetPasswordExpire: { $gt: Date.now() }
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: 'Token invalid or expired' });
-    }
-
-    user.password = req.body.password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-
-    await user.save();
-
-    res.status(200).json({ message: 'Password reset successful' });
-
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
 const User = mongoose.model('User', userSchema);
 

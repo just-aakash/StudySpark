@@ -3,11 +3,12 @@ import dotenv from 'dotenv';
 import Question from './models/Question.js';
 import { FALLBACK_QUESTIONS } from './services/aiCheckpointService.js';
 
-dotenv.config({ path: '../.env' }); // Adjust if needed depending on where script runs from
+dotenv.config(); 
 
 const seedDatabase = async () => {
   try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/studyspark';
+    dotenv.config(); // Look in current dir
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/studyspark';
     await mongoose.connect(mongoUri);
     console.log('📦 Connected to MongoDB');
 
