@@ -178,7 +178,14 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
       // User info
       const u = analytics.user || {};
-      setEnrolledCourses(u.enrolledCourses || []);
+      const enrolled = u.enrolledCourses || [];
+      setEnrolledCourses(enrolled);
+
+      // Auto-select first course if none selected
+      if (enrolled.length > 0) {
+        setTestSubject(prev => prev || enrolled[0]);
+        setRoadmapSubject(prev => prev || enrolled[0]);
+      }
       const fullName = `${u.fname || ""} ${u.lname || ""}`.trim() || "Student";
       const av = fullName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
       setLiveUser({
@@ -262,6 +269,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   /* ── CHECKPOINT TEST LOGIC (live) ──────────────────────── */
   const startTest = async (subjectOverride) => {
     const subject = subjectOverride || testSubject;
+    if (!subject) return alert("Please select a subject first.");
     if (subjectOverride) setTestSubject(subjectOverride);
     setTestLoading(true);
     setSelectedAnswer(null);
@@ -888,8 +896,9 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                         </button>
                       ))}
                     </div>
-                    <button className="btn-primary" style={{ width: "100%", padding: "11px", fontSize: 14 }} onClick={() => startTest()} disabled={testLoading}>
-                      {testLoading ? "Loading questions..." : `Start ${testSubject} Test →`}
+                    <button className="btn-primary" style={{ width: "100%", padding: "11px", fontSize: 14, opacity: !testSubject ? 0.6 : 1 }} 
+                      onClick={() => startTest()} disabled={testLoading || !testSubject}>
+                      {testLoading ? "Loading questions..." : testSubject ? `Start ${testSubject} Test →` : "Select a subject above"}
                     </button>
                   </div>
                   <div className="page-h" style={{ fontSize: 14, marginBottom: 12 }}>Past Results</div>
