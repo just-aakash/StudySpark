@@ -495,31 +495,27 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               </div>
             )}
           </div>
+
+          {/* FOCUS BADGE */}
+          <div className="focus-badge" title={`Tab Switches: ${focus.tabSwitches}`}>
+            <div className="focus-dot" style={{ background: focus.score > 70 ? "var(--accent)" : focus.score > 40 ? "var(--yellow)" : "var(--red)" }}></div>
+            <div className="focus-score-box">
+              <span className="focus-score-val" style={{ color: focus.score > 70 ? "var(--accent)" : focus.score > 40 ? "var(--yellow)" : "var(--red)" }}>
+                {focus.score}%
+              </span>
+              <span className="focus-score-lbl">Focus Score</span>
+            </div>
+            <div style={{ marginLeft: 8, paddingLeft: 12, borderLeft: "1px solid var(--border)", display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: 11, fontWeight: 700 }}>{focus.tabSwitches}</span>
+              <span style={{ fontSize: 9, color: "var(--muted)", textTransform: 'uppercase' }}>Switches</span>
+            </div>
+          </div>
         </nav>
 
         {/* CONTENT */}
         <div className="dash-content">
-            {/* 🔥 FOCUS TRACKER — PASTE HERE */}
-  <div style={{
-    position: "fixed",
-    top: "80px",
-    right: "20px",
-    background: focus.score > 70 ? "#111" : focus.score > 40 ? "#f59e0b" : "#ef4444",
-    color: "white",
-    padding: "10px 14px",
-    borderRadius: "10px",
-    zIndex: 9999,
-    fontSize: "13px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.4)",
-    minWidth: "120px"
-  }}>
-    <div style={{ fontWeight: "600" }}>
-      Focus: {focus.score}
-    </div>
-    <div style={{ fontSize: "12px", opacity: 0.8 }}>
-      Switches: {focus.tabSwitches}
-    </div>
-  </div>
+
+
           {/* ── DASHBOARD HOME ── */}
           {active === "dashboard" && (
             <div>
@@ -533,38 +529,22 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                     Welcome back, {liveUser.name.split(" ")[0]}.
                   </div>
                 </div>
-                <div style={{
+                <div className="date-badge" style={{
+                  fontSize: 14,
+                  color: "var(--text)",
+                  background: "rgba(255,255,255,0.03)",
+                  padding: "8px 16px",
+                  borderRadius: "12px",
+                  border: "1px solid var(--border)",
+                  boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
                   display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-end',
-                  gap: 4
+                  alignItems: 'center',
+                  gap: 8,
+                  fontWeight: 600,
+                  height: 'fit-content'
                 }}>
-                  <div style={{
-                    fontSize: 12,
-                    color: "var(--accent)",
-                    fontWeight: 700,
-                    textTransform: "uppercase",
-                    letterSpacing: 2,
-                    marginBottom: 2
-                  }}>
-                    Current Status
-                  </div>
-                  <div style={{
-                    fontSize: 14,
-                    color: "var(--text)",
-                    background: "rgba(255,255,255,0.03)",
-                    padding: "8px 16px",
-                    borderRadius: "12px",
-                    border: "1px solid var(--border)",
-                    boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    fontWeight: 600
-                  }}>
-                    <span style={{ fontSize: 16 }}>📅</span>
-                    {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}
-                  </div>
+                  <span style={{ fontSize: 16 }}>📅</span>
+                  {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}
                 </div>
               </div>
 

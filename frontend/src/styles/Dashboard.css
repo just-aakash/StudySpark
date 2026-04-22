@@ -158,3 +158,63 @@
   align-items: center;
   justify-content: center;
   }
+
+  /* FOCUS BADGE */
+  .focus-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+    cursor: pointer;
+    margin-left: auto;
+  }
+  .focus-badge:hover {
+    border-color: var(--accent);
+    background: rgba(0,212,170,0.05);
+  }
+  .focus-score-box {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+  }
+  .focus-score-val {
+    font-size: 13px;
+    font-weight: 800;
+    font-family: var(--display);
+  }
+  .focus-score-lbl {
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .focus-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    position: relative;
+  }
+  .focus-dot::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0.4;
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.4; }
+    70% { transform: scale(2.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    .focus-badge { display: none; } /* Hide on very small screens to save space */
+  }
