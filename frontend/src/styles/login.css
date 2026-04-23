@@ -95,6 +95,9 @@
     border-color: var(--accent); 
     color: var(--accent); 
 }
+.soc-google:hover  { border-color: #EA4335; color: #EA4335; }
+.soc-linkedin:hover { border-color: #0A66C2; color: #0A66C2; }
+.soc-github:hover  { border-color: #e0e0e0; color: #e0e0e0; }
 .ll-feat { 
     display: flex; 
     align-items: center; 

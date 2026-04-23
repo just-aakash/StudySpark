@@ -6,6 +6,7 @@ import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import CoursePage from "./pages/CoursePage";
 import ForgotPassword from "./pages/ForgotPassword";
+import OAuthCallback from "./pages/OAuthCallback";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -41,6 +42,7 @@ function App() {
       <Route path="/register" element={<RegisterPage onRegister={handleRegister} />} />
       <Route path="/dashboard" element={<DashboardPage user={user} theme={theme} setTheme={setTheme} />} />
       <Route path="/courses" element={<CoursePage user={user} onCourseSelect={handleCourseSelect} />} />
+      <Route path="/oauth/callback" element={<OAuthCallback onLogin={handleLogin} />} />
     </Routes>
   );
 }

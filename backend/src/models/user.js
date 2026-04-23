@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   phone: { type: String },
   dob: { type: Date },
-  password: { type: String, required: true, minlength: 6 },
+  password: { type: String, minlength: 6 },
+  authProvider: { type: String, enum: ['local', 'google', 'github', 'linkedin'], default: 'local' },
   education: { type: String },
   year: { type: String },
   interests: [{ type: String }],
@@ -31,9 +32,9 @@ const userSchema = new mongoose.Schema({
   otpExpire: Date,
 }, { timestamps: true });
 
-// Hash password before saving
+// Hash password before saving (skip for OAuth users)
 userSchema.pre('save', async function () {
-  if (!this.isModified('password')) {
+  if (!this.isModified('password') || !this.password) {
     return;
   }
   const salt = await bcrypt.genSalt(10);
