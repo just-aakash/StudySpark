@@ -124,7 +124,9 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
       const data = focusTracker.getData();
       try {
         await authService.syncFocus(data.score, data.tabSwitches);
-      } catch (e) { console.error("Focus sync err", e); }
+      } catch (e) {
+        console.error("Focus Sync Failed:", e.response?.data?.message || e.message);
+      }
     }, 120000);
 
     return () => {
@@ -133,7 +135,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
       clearInterval(syncInterval);
       // Final sync on leave
       const data = focusTracker.getData();
-      authService.syncFocus(data.score, data.tabSwitches).catch(() => {});
+      authService.syncFocus(data.score, data.tabSwitches).catch(() => { });
     };
   }, []);
 
@@ -247,6 +249,13 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
       setConsistencyData(analytics.consistencyData || {});
       setCompletionPct(analytics.stats?.completionPct || 0);
       setStats(analytics.stats || {});
+
+      // Auto-select first subject if none selected
+      const userCourses = u.enrolledCourses || [];
+      if (userCourses.length > 0) {
+        if (!roadmapSubject) setRoadmapSubject(userCourses[0]);
+        if (!testSubject) setTestSubject(userCourses[0]);
+      }
 
       // Daily tasks — map _id → id for UI consistency
       setTasks(todayTasks.map(t => ({ ...t, id: t._id, subj: t.subject })));
@@ -916,7 +925,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
               ) : testState.submitting ? (
                 <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center", padding: "60px 0" }}>
                   <div style={{ fontSize: 48, marginBottom: 16, animation: "spin 1s linear infinite", display: "inline-block" }}>⏳</div>
-                   <div style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--accent)" }}>Submitting your answers...</div>
+                  <div style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 700, color: "var(--accent)" }}>Submitting your answers...</div>
                   <div style={{ fontSize: 14, color: "var(--muted)", marginTop: 8 }}>Calculating your results...</div>
                 </div>
               ) : testState.score !== null ? (

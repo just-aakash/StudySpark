@@ -230,7 +230,7 @@ export default function HomePage() {
             )}
           </div>
           <div className="contact-info">
-            {[["📍", "Location", "GLA University, Mathura, UP 281406"], ["📧", "Email", "akash.tiwari_cs24@gla.ac.in"],].map(([ic, l, v]) => (
+            {[["📍", "Location", "GLA University, Mathura, UP 281406"], ["📧", "Email", "tyagiidhruv5@gmail.com"],].map(([ic, l, v]) => (
               <div className="ci-card" key={l}><div className="ci-icon">{ic}</div><div><div className="ci-label">{l}</div><div className="ci-val">{v}</div></div></div>
             ))}
           </div>
@@ -239,7 +239,7 @@ export default function HomePage() {
 
       <footer className="home-footer">
         <div style={{ fontFamily: "var(--display)", fontSize: 22, fontWeight: 800, color: "var(--accent)", marginBottom: 8 }}><div className="home-footer-logo"><img src={logo} alt="StudySpark Logo" /></div>StudySpark</div>
-        <div style={{ color: "var(--muted)", fontSize: 14 }}>AI Habit Forge(dt_0.1)</div>
+        <div style={{ color: "var(--muted)", fontSize: 14 }}>AI Habit Forge(dt_0.2)</div>
         <div style={{ marginTop: 8, color: "var(--muted)", fontSize: 12 }}>Built with ❤️ by Akash, Akash, Lakshay, Dhruv & Jayant</div>
       </footer>
 
