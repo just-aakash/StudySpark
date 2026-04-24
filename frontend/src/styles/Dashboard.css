@@ -218,3 +218,8 @@
   @media (max-width: 600px) {
     .focus-badge { display: none; } /* Hide on very small screens to save space */
   }
+
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0);   opacity: 1; }
+  }
