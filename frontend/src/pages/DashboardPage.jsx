@@ -46,6 +46,31 @@ function mapRoadPath(nodes) {
   }));
 }
 
+// ── Topic Resource Generator ─────────────────────────────────────
+// Builds YouTube search + curated doc links for any roadmap topic
+function getTopicResources(topic, subject) {
+  const q = encodeURIComponent(`${topic} ${subject || ""}`.trim());
+  const topicQ = encodeURIComponent(topic);
+
+  // YouTube links – search + top tutorial queries
+  const videos = [
+    { label: `▶ ${topic} — Full Tutorial`, url: `https://www.youtube.com/results?search_query=${q}+tutorial` },
+    { label: `▶ ${topic} — Explained Simply`, url: `https://www.youtube.com/results?search_query=${topicQ}+explained+for+beginners` },
+    { label: `▶ ${topic} — Interview Questions`, url: `https://www.youtube.com/results?search_query=${topicQ}+interview+questions` },
+  ];
+
+  // Documentation links
+  const docs = [
+    { label: "GeeksForGeeks", icon: "📗", url: `https://www.geeksforgeeks.org/search/?q=${topicQ}` },
+    { label: "W3Schools",     icon: "🌐", url: `https://www.w3schools.com/search/search_result.php?q=${topicQ}` },
+    { label: "MDN Web Docs",  icon: "📘", url: `https://developer.mozilla.org/en-US/search?q=${topicQ}` },
+    { label: "Wikipedia",     icon: "📖", url: `https://en.wikipedia.org/w/index.php?search=${topicQ}` },
+    { label: "JavatPoint",    icon: "☕", url: `https://www.javatpoint.com/search/${topicQ}` },
+  ];
+
+  return { videos, docs };
+}
+
 // Helper: map backend checkpoint history to cpScores format
 function mapCpScores(history) {
   if (!history || !history.length) return [];
@@ -141,6 +166,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   const [testQuestions, setTestQuestions] = useState([]);
   const [testSubject, setTestSubject] = useState("");
   const [roadmapSubject, setRoadmapSubject] = useState("");
+  const [topicDrawer, setTopicDrawer] = useState(null); // { topic, subject, color, day, status }
   const [customTopic, setCustomTopic] = useState("");
   const [testState, setTestState] = useState({ started: false, q: 0, answers: [], score: null, correct: 0, total: 0, submitting: false, feedback: null });
   const [testLoading, setTestLoading] = useState(false);
@@ -866,11 +892,20 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                         )}
                       </div>
                       <div style={{ flex: 1, padding: i % 2 === 0 ? "0 0 0 24px" : "0 24px 0 0" }}>
-                        <div className="road-content" style={{ borderColor: node.status === "current" ? node.color : "var(--border)", background: node.status === "current" ? node.color + "08" : "var(--surface)" }}>
+                        <div
+                          className="road-content"
+                          onClick={() => setTopicDrawer({ topic: node.topic, subject: node.subject || roadmapSubject, color: node.color, day: node.day, status: node.status })}
+                          style={{ borderColor: node.status === "current" ? node.color : "var(--border)", background: node.status === "current" ? node.color + "08" : "var(--surface)", cursor: "pointer" }}
+                        >
                           <div style={{ fontSize: 11, fontWeight: 700, color: node.color, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>{node.day}</div>
                           <div style={{ fontFamily: "var(--display)", fontSize: 16, fontWeight: 700 }}>{node.topic}</div>
-                          <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                            {node.status === "done" ? "✅ Completed" : node.status === "current" ? "📍 In Progress" : "🔒 Upcoming"}
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+                            <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                              {node.status === "done" ? "✅ Completed" : node.status === "current" ? "📍 In Progress" : "🔒 Upcoming"}
+                            </div>
+                            <div style={{ fontSize: 11, color: node.color, fontWeight: 700, display: "flex", alignItems: "center", gap: 4 }}>
+                              📚 Resources
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -878,6 +913,103 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
                   </div>
                 )) : <div style={{ textAlign: "center", padding: 40, color: "var(--muted)" }}>{generatingRoadmap ? "AI is crafting your perfect study plan..." : "No roadmap yet. Click Generate AI Roadmap above!"}</div>}
               </div>
+
+              {/* ── TOPIC RESOURCE DRAWER ── */}
+              {topicDrawer && (() => {
+                const { videos, docs } = getTopicResources(topicDrawer.topic, topicDrawer.subject);
+                return (
+                  <>
+                    {/* Backdrop */}
+                    <div
+                      onClick={() => setTopicDrawer(null)}
+                      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)", zIndex: 900, animation: "fadeIn 0.2s ease" }}
+                    />
+                    {/* Drawer */}
+                    <div style={{
+                      position: "fixed", top: 0, right: 0, bottom: 0, width: "min(480px, 100vw)",
+                      background: "var(--surface)", borderLeft: `2px solid ${topicDrawer.color}`,
+                      zIndex: 1000, display: "flex", flexDirection: "column", overflowY: "auto",
+                      animation: "slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      boxShadow: `-8px 0 40px rgba(0,0,0,0.4)`
+                    }}>
+                      {/* Header */}
+                      <div style={{ padding: "24px 24px 16px", borderBottom: "1px solid var(--border)", position: "sticky", top: 0, background: "var(--surface)", zIndex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                          <div>
+                            <div style={{ fontSize: 10, fontWeight: 800, color: topicDrawer.color, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>{topicDrawer.day} · {topicDrawer.subject}</div>
+                            <div style={{ fontFamily: "var(--display)", fontSize: 20, fontWeight: 800, color: "var(--text)", lineHeight: 1.3 }}>{topicDrawer.topic}</div>
+                            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 6 }}>
+                              {topicDrawer.status === "done" ? "✅ Completed" : topicDrawer.status === "current" ? "📍 In Progress" : "🔒 Upcoming"}
+                            </div>
+                          </div>
+                          <button onClick={() => setTopicDrawer(null)} style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8, width: 32, height: 32, color: "var(--muted)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</button>
+                        </div>
+                      </div>
+
+                      {/* Body */}
+                      <div style={{ padding: "20px 24px", flex: 1 }}>
+
+                        {/* Video Section */}
+                        <div style={{ marginBottom: 28 }}>
+                          <div style={{ fontSize: 11, fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 16 }}>▶️</span> Video Tutorials
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            {videos.map((v, i) => (
+                              <a key={i} href={v.url} target="_blank" rel="noopener noreferrer"
+                                style={{
+                                  display: "flex", alignItems: "center", gap: 14, padding: "14px 16px",
+                                  background: "var(--surface2)", border: "1px solid var(--border)",
+                                  borderRadius: 12, textDecoration: "none", color: "var(--text)",
+                                  transition: "all 0.2s", cursor: "pointer"
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = "#ff0000"; e.currentTarget.style.background = "rgba(255,0,0,0.06)"; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--surface2)"; }}
+                              >
+                                <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(255,0,0,0.12)", border: "1px solid rgba(255,0,0,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>▶</div>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: 13, fontWeight: 600, lineHeight: 1.4 }}>{v.label}</div>
+                                  <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>YouTube Search →</div>
+                                </div>
+                                <div style={{ fontSize: 16, color: "var(--muted)" }}>↗</div>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Docs Section */}
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 800, color: "var(--muted)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 16 }}>📄</span> Documentation & Articles
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            {docs.map((d, i) => (
+                              <a key={i} href={d.url} target="_blank" rel="noopener noreferrer"
+                                style={{
+                                  display: "flex", alignItems: "center", gap: 14, padding: "14px 16px",
+                                  background: "var(--surface2)", border: "1px solid var(--border)",
+                                  borderRadius: 12, textDecoration: "none", color: "var(--text)",
+                                  transition: "all 0.2s"
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.borderColor = topicDrawer.color; e.currentTarget.style.background = topicDrawer.color + "11"; }}
+                                onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--surface2)"; }}
+                              >
+                                <div style={{ width: 40, height: 40, borderRadius: 10, background: topicDrawer.color + "18", border: `1px solid ${topicDrawer.color}44`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>{d.icon}</div>
+                                <div style={{ flex: 1 }}>
+                                  <div style={{ fontSize: 13, fontWeight: 700 }}>{d.label}</div>
+                                  <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>Search: "{topicDrawer.topic}" →</div>
+                                </div>
+                                <div style={{ fontSize: 16, color: "var(--muted)" }}>↗</div>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           )}
 
