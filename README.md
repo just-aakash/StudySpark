@@ -31,9 +31,8 @@ StudySpark is a premium, intelligent, and adaptive learning platform designed to
 *   **Streaks**: Build and maintain daily learning streaks to stay motivated.
 *   **Task Management**: Integrated "Today's Tasks" module to keep your daily study goals organized.
 
-### 🔐 Secure & Flexible Access
-*   **Multi-Platform OAuth**: Seamless login via **Google**, **GitHub**, and **LinkedIn**.
-*   **Standard Auth**: Secure local registration with OTP-based password recovery and email verification.
+### 🔐 Secure Access
+*   **Standard Auth**: Secure registration and login with OTP-based password recovery and email verification.
 
 ---
 

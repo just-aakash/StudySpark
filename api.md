@@ -9,18 +9,18 @@ The API base URL is: `http://localhost:5000/api` (default development port)
 
 ## 1. Authentication (`/api/auth`)
 
-These endpoints handle user registration, login, password recovery, and third-party OAuth.
+These endpoints handle user registration, login, and password recovery.
 
-| Method | Endpoint | Access | Description |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/register` | Public | Register a new user with full profile details. |
-| `POST` | `/login` | Public | Authenticate user and receive a JWT token. |
-| `POST` | `/forgot-password` | Public | Request a password reset via Email (link) or Phone (OTP). |
-| `POST` | `/verify-otp` | Public | Verify the 6-digit OTP sent to the user's phone. |
-| `POST` | `/reset-password/:token` | Public | Reset password using a valid reset token. |
-| `GET` | `/google` | Public | Initiate Google OAuth flow. |
-| `GET` | `/github` | Public | Initiate GitHub OAuth flow. |
-| `GET` | `/linkedin` | Public | Initiate LinkedIn OAuth flow. |
+1.  **Register**: `POST /register`
+    *   Body: `fname`, `lname`, `email`, `password`, `dob`, `phone`, etc.
+2.  **Login**: `POST /login`
+    *   Body: `email`, `password`
+3.  **Forgot Password**: `POST /forgot-password`
+    *   Body: `email`
+4.  **Verify OTP**: `POST /verify-otp`
+    *   Body: `email`, `otp`
+5.  **Reset Password**: `POST /reset-password/:token`
+    *   Body: `newPassword`
 
 **Example Registration Payload:**
 ```json
