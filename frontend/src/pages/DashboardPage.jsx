@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import "../styles/Dashboard.css";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +13,12 @@ import logo from "../assets/logo.png";
 import Modal from "../components/Modal";
 import AIChatBot from "../components/AIChatBot";
 import focusTracker from "../utils/focusTracker";
+
+
+import sessionService from "../services/sessionService";
+import { saveSession, loadSession, clearSession } from "../utils/sessionManager";
+
+
 
 // ── Default/fallback data shown while real data loads ──────────
 const DEFAULT_ROADMAP_PROGRESS = [];
@@ -125,6 +132,7 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
     tabSwitches: 0,
     score: 100
   });
+  const [resumeAvailable, setResumeAvailable] = useState(false);
 
   // Update focus state when liveUser (backend data) loads
   useEffect(() => {
@@ -326,11 +334,69 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
+  // 2. 🔥 RESTORE SESSION
+useEffect(() => {
+  const session = loadSession();
+
+  if (session) {
+    setTasks(session.tasks || []);
+    setTestState(session.testState || {});
+    setTestQuestions(session.testQuestions || []);
+    setRoadPath(session.roadPath || []);
+    setActive(session.active || "dashboard");
+  }
+}, []);
+
+useEffect(() => {
+  const session = loadSession();
+  if (session) setResumeAvailable(true);
+}, []);
+
   // Close profile dropdown on outside click
   useEffect(() => {
     const h = e => { if (profRef.current && !profRef.current.contains(e.target)) setProfOpen(false); };
     document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h);
   }, []);
+
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    const data = {
+      tasks,
+      testState,
+      testQuestions,
+      roadPath,
+      active
+    };
+
+    saveSession(data); // local
+    sessionService.saveSession(data); // backend
+  }, 5000);
+
+  return () => clearInterval(interval);
+}, [tasks, testState, testQuestions, roadPath, active]);
+
+useEffect(() => {
+  const load = async () => {
+    try {
+      const res = await sessionService.getSession();
+
+      if (res.data) {
+        const s = res.data;
+
+        setTasks(s.tasks || []);
+        setTestState(s.testState || {});
+        setTestQuestions(s.testQuestions || []);
+        setRoadPath(s.roadPath || []);
+        setActive(s.active || "dashboard");
+      }
+    } catch (err) {
+      console.error("Session load failed");
+    }
+  };
+
+  if (!loading) load();
+}, [loading]);
 
   const risk = completionPct;
   const riskColor = riskLevel === "Low" ? "var(--green)" : riskLevel === "Moderate" ? "var(--yellow)" : "var(--red)";
@@ -409,6 +475,10 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
           feedback: result.feedback,
           submitting: false,
         }));
+
+        await sessionService.clearSession();
+        clearSession();
+
         // Refresh dashboard data
         fetchDashboardData();
       } catch (err) {
@@ -673,6 +743,53 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
         {/* CONTENT */}
         <div className="dash-content">
 
+
+           {resumeAvailable && (
+          <div style={{
+            position: "fixed",
+            top: 20,
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            padding: "14px 20px",
+            borderRadius: 12,
+            zIndex: 9999,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            display: "flex",
+            gap: 12,
+            alignItems: "center"
+          }}>
+            <span style={{ fontSize: 13 }}>Resume your last session?</span>
+
+            <button
+              style={{ padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}
+              onClick={() => {
+                const s = loadSession();
+                if (s) {
+                  setTasks(s.tasks || []);
+                  setTestState(s.testState || {});
+                  setTestQuestions(s.testQuestions || []);
+                  setRoadPath(s.roadPath || []);
+                  setActive(s.active || "dashboard");
+                }
+                setResumeAvailable(false);
+              }}
+            >
+              Resume
+            </button>
+
+            <button
+              style={{ padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}
+              onClick={() => {
+                clearSession();
+                setResumeAvailable(false);
+              }}
+            >
+              Start Fresh
+            </button>
+          </div>
+        )}
 
           {/* ── DASHBOARD HOME ── */}
           {active === "dashboard" && (
