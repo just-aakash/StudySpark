@@ -560,6 +560,24 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
 
   return (
     <div className="dash-wrap">
+      {/* ANIMATED BACKGROUND LAYER */}
+      <div className="dash-bg" aria-hidden="true">
+        <div className="dash-orb" />
+        <div className="dash-orb" />
+        <div className="dash-orb" />
+        <div className="dash-orb" />
+        <div className="dash-orb" />
+        <div className="dash-particle" />
+        <div className="dash-particle" />
+        <div className="dash-particle" />
+        <div className="dash-particle" />
+        <div className="dash-particle" />
+        <div className="dash-particle" />
+        <div className="dash-particle" />
+        <div className="dash-particle" />
+        <div className="dash-scan" />
+      </div>
+
       {/* MOBILE SIDEBAR OVERLAY */}
       {sbOpen && <div className="sidebar-overlay" onClick={() => setSbOpen(false)}></div>}
 
