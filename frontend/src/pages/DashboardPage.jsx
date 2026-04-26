@@ -280,11 +280,31 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
       setAnalyticsData(analytics.analyticsData || []);
       setWeakTopics(analytics.weakTopics || []);
       setBadges(u.badges || []);
-      setStreak(analytics.stats?.streak || 0);
       setRiskLevel(analytics.stats?.riskLevel || "Low");
-      setConsistencyData(analytics.consistencyData || {});
+      const cd = analytics.consistencyData || {};
+      setConsistencyData(cd);
       setCompletionPct(analytics.stats?.completionPct || 0);
       setStats(analytics.stats || {});
+
+      // Compute streak client-side from consistencyData — identical to what the calendar renders
+      // Walk back from yesterday; skip today if no activity yet (streak stays alive)
+      const toDateKey = (d) =>
+        `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      let computedStreak = 0;
+      const todayKey = toDateKey(new Date());
+      for (let i = 1; i <= 365; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const key = toDateKey(d);
+        if (cd[key] && cd[key] > 0) {
+          computedStreak++;
+        } else {
+          break;
+        }
+      }
+      // Also count today if it already has activity
+      if (cd[todayKey] && cd[todayKey] > 0) computedStreak++;
+      setStreak(computedStreak);
 
       // Auto-select first subject if none selected
       const userCourses = u.enrolledCourses || [];
@@ -315,8 +335,20 @@ function DashboardPage({ user: propUser, courses, theme, setTheme }) {
   const risk = completionPct;
   const riskColor = riskLevel === "Low" ? "var(--green)" : riskLevel === "Moderate" ? "var(--yellow)" : "var(--red)";
   const riskLabel = riskLevel === "Low" ? "Low Risk" : riskLevel === "Moderate" ? "Moderate" : "High Risk";
-  const doneTasks = stats.todayTasksDone || 0;
-  const totalTasks = stats.todayTasksTotal || 0;
+
+  // Compute roadmap-derived rows exactly as the Today's Study Tasks section does
+  const roadmapTaskRows = roadPath
+    .filter(n => n.status === "current" || (n.status === "pending" && !roadPath.some(x => x.status === "current")))
+    .slice(0, 3)
+    .filter(node => {
+      const marked = resourcesRead[node.topic] || {};
+      const markedCount = Object.values(marked).filter(Boolean).length;
+      return (8 - markedCount) > 0 && node.status !== "done";
+    });
+
+  // Tasks Today stat counts both real DB tasks AND roadmap study rows (matches visible section)
+  const doneTasks = tasks.filter(t => t.done).length;
+  const totalTasks = tasks.length + roadmapTaskRows.length;
 
   const SIDEBAR = [
     { section: "MAIN" },

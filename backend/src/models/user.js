@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
 
   // Gamification & progress
   streak: { type: Number, default: 0 },
+  lastStudyDate: { type: Date, default: null },
   enrolledCourses: { type: [String], default: [] },
   checkpointScore: { type: Number, default: 0 },
   riskLevel: { type: String, enum: ['low', 'medium', 'high'], default: 'low' },

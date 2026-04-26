@@ -6,7 +6,7 @@ const AIChatBot = ({ user }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', text: `Hello ${user?.fname || 'there'}! 👋 I'm your personal assistant. I can help you with your studies, check your progress, or generate roadmaps. How can I help today?` },
+    { role: 'assistant', text: `Hello ${user?.fname || 'Lord'}! 👋 I'm your personal assistant. I can help you with your studies, check your progress, or generate roadmaps. How can I help today?` },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);

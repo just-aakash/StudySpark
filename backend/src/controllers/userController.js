@@ -77,36 +77,50 @@ export const getAnalytics = async (req, res) => {
     });
 
     // Total tasks completed (today & all time)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    // Use IST offset (+5:30) to compute the correct local-day boundaries in UTC
+    const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+    const nowUTC = Date.now();
+    const nowIST = new Date(nowUTC + IST_OFFSET_MS);
+    // Today's midnight in IST, expressed as UTC
+    const todayStartUTC = new Date(
+      Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate()) - IST_OFFSET_MS
+    );
+    const todayEndUTC = new Date(todayStartUTC.getTime() + 24 * 60 * 60 * 1000);
 
     const [totalTasksDone, todayTasksDone, todayTasksTotal] = await Promise.all([
       Task.countDocuments({ userId, done: true }),
-      Task.countDocuments({ userId, done: true, date: { $gte: today, $lt: tomorrow } }),
-      Task.countDocuments({ userId, date: { $gte: today, $lt: tomorrow } }),
+      Task.countDocuments({ userId, done: true, date: { $gte: todayStartUTC, $lt: todayEndUTC } }),
+      Task.countDocuments({ userId, date: { $gte: todayStartUTC, $lt: todayEndUTC } }),
     ]);
 
-    // Consistency Data: Activity (Checkpoint/Task count) per day for the last 30 days
-    const thirtyDaysAgo = new Date();
+    // Consistency Data: Activity per day for the last 30 days, bucketed in IST
+    const thirtyDaysAgo = new Date(todayStartUTC);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    thirtyDaysAgo.setHours(0, 0, 0, 0);
 
     const [ckptActivity, tskActivity] = await Promise.all([
       Checkpoint.aggregate([
         { $match: { userId, createdAt: { $gte: thirtyDaysAgo } } },
-        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, count: { $sum: 1 } } }
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt', timezone: 'Asia/Kolkata' } },
+            count: { $sum: 1 }
+          }
+        }
       ]),
       Task.aggregate([
         { $match: { userId, done: true, updatedAt: { $gte: thirtyDaysAgo } } },
-        { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$updatedAt" } }, count: { $sum: 1 } } }
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$updatedAt', timezone: 'Asia/Kolkata' } },
+            count: { $sum: 1 }
+          }
+        }
       ])
     ]);
 
     const consistencyData = {};
-    ckptActivity.forEach(a => consistencyData[a._id] = (consistencyData[a._id] || 0) + a.count);
-    tskActivity.forEach(a => consistencyData[a._id] = (consistencyData[a._id] || 0) + a.count);
+    ckptActivity.forEach(a => { consistencyData[a._id] = (consistencyData[a._id] || 0) + a.count; });
+    tskActivity.forEach(a => { consistencyData[a._id] = (consistencyData[a._id] || 0) + a.count; });
 
     // Roadmap progress
     const roadmap = await Roadmap.findOne({ userId });
@@ -130,8 +144,39 @@ export const getAnalytics = async (req, res) => {
       ? Math.round(checkpointHistory.reduce((a, s) => a + s.score, 0) / checkpointHistory.length)
       : 0;
 
-    // Fetch user without password to cleanly expose all dynamic properties
+    // Compute streak by walking back through consistencyData (same source as the calendar)
+    // This guarantees the streak box always matches the calendar highlights
+    const todayISTStr = [
+      nowIST.getUTCFullYear(),
+      String(nowIST.getUTCMonth() + 1).padStart(2, '0'),
+      String(nowIST.getUTCDate()).padStart(2, '0')
+    ].join('-');
+
+    let computedStreak = 0;
+    for (let i = 0; i <= 365; i++) {
+      const d = new Date(nowIST);
+      d.setUTCDate(d.getUTCDate() - i);
+      const dateStr = [
+        d.getUTCFullYear(),
+        String(d.getUTCMonth() + 1).padStart(2, '0'),
+        String(d.getUTCDate()).padStart(2, '0')
+      ].join('-');
+      if (consistencyData[dateStr] > 0) {
+        computedStreak++;
+      } else if (dateStr === todayISTStr) {
+        // No activity today yet — don't break, still check yesterday
+        continue;
+      } else {
+        break;
+      }
+    }
+
+    // Fetch user and sync streak if it changed
     const user = await User.findById(userId).select('-password');
+    if (user.streak !== computedStreak) {
+      await User.findByIdAndUpdate(userId, { streak: computedStreak });
+      user.streak = computedStreak;
+    }
 
     res.json({
       user,
@@ -145,7 +190,7 @@ export const getAnalytics = async (req, res) => {
         totalTasksDone,
         todayTasksDone,
         todayTasksTotal,
-        streak: user.streak,
+        streak: computedStreak,
         riskLevel: user.riskLevel,
         completionPct,
       },
